@@ -1,10 +1,15 @@
 import tkinter as tk
 import pickle
+from tkinter import filedialog
+from PIL import Image, ImageTk
 
 ml=tk.Tk()
 class LostAndFound:
     def __init__(self,ml):
 
+        #######
+        self.image_refs = []
+        ##########
         self.lost_item_list=[]
         self.sorted_i_l = [] ## 메인 화면 표시의 기준
         self.ml=ml
@@ -71,7 +76,11 @@ class LostAndFound:
         self.window=tk.Toplevel(self.ml)
 
         def assign(): #제출 버튼을 누를 시 등록하는 함수
-            self.lost_item=Lost(self.name_et.get(),self.time_et.get(),self.loc_et.get(),self.image_et.get(),self.board_lost,self.board_found,self.ml) #객체 생성
+
+            ############3
+            self.lost_item=Lost(self.name_et.get(),self.time_et.get(),self.loc_et.get(),self.img_path,self.board_lost,self.board_found,self.ml) #객체 생성
+            ############
+
             self.lost_item_list.append(self.lost_item)
             self.sort_seq()
             
@@ -94,8 +103,13 @@ class LostAndFound:
         self.loc_prmpt = tk.Label(self.loc_frm, text = "잃어버린 위치:")
         self.loc_et = tk.Entry(self.loc_frm)
 
+        ####이미지 등록하기################
+        self.img_path = None
+        ####self.img_path = r"C:\Users\user\Documents\Code - Python\정보수행 - 분실물게시판\default.jpg"
         self.image_prmpt = tk.Label(self.window, text = "분실물 사진(선택):")  #사진 없을 경우 기본값(기본사진; X표 있는 흰 배경 같은거) 있어야힘
-        self.image_et = tk.Entry(self.window)
+        self.image_bt = tk.Button(self.window, text = "사진 선택", command=self.select_image)
+        #########################
+
 
         self.submit_bt = tk.Button(self.window, text='등록하기',command=lambda:(assign(),self.reload()))
 
@@ -112,9 +126,19 @@ class LostAndFound:
         self.loc_et.pack(side = tk.LEFT)
 
         self.image_prmpt.pack(anchor=tk.W)
-        self.image_et.pack(anchor=tk.W)
+        self.image_bt.pack(anchor=tk.W)
 
         self.submit_bt.pack()
+    
+    #########################################################
+
+    def select_image(self):
+        self.img_path = filedialog.askopenfilename(
+            title="이미지 선택",
+            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")]
+        )
+        
+    ####################################################
     
 class Lost: #각 분실물을 객체로 하는 클래스스
 
@@ -135,13 +159,19 @@ class Lost: #각 분실물을 객체로 하는 클래스스
         self.statename = tk.Label(self.frm, text = f"분실물 이름: {self.name}")
         self.statetime = tk.Label(self.frm, text = f"예상 분실 시간: {self.time[0]}:{self.time[1]}" if self.state==0 else f"찾은 위치: {self.find_time}")
         self.stateloc = tk.Label(self.frm, text = f"예상 분실 위치: {self.loc}" if self.state==0 else f"찾은 위치: {self.find_loc}")
-        self.stateimg = tk.Label(self.frm, text = f"이미지: {self.img}")
+
+        image = Image.open(self.img)
+        image = image.resize((100, 100))  # 크기 조정
+        photo = ImageTk.PhotoImage(image)
+        self.photo = photo
+        self.stateimg = tk.Label(self.frm, image = self.photo)
+
         self.statestate = tk.Label(self.frm, text = f"현재 상태: {['찾음','못 찾음'][self.state]}")
         self.statesubmit = tk.Button(self.frm, text="분실물 찾음",command=self.foundInput)
         self.statename.pack()
         self.statetime.pack()
         self.stateloc.pack()
-        self.stateimg.pack()
+        self.stateimg.pack(anchor = "w")
         self.statestate.pack()
         self.statesubmit.pack()
 
