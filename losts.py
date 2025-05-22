@@ -25,6 +25,8 @@ class LostAndFound:
         self.board_lost.pack(side='left',padx=20,pady=20)
         self.board_found.pack(side='left',padx=20,pady=20)
 
+        self.boards_frm.pack()
+
     def reload(self):
         for wdg in self.board_lost.winfo_children():
             wdg.destroy()
@@ -45,7 +47,7 @@ class LostAndFound:
         print([(inst.name,inst.time,inst.loc) for inst in self.sorted_i_l])
         self.reload()
 
-    def sortLost(self): ############################################################ sorted_i_l 작성성
+    def sortLost(self): ### sorted_i_l 작성성
         self.sort_frm = tk.Frame(self.ml) 
         self.sort_lbl = tk.Label(self.sort_frm, text = "정렬 ", font=("나눔고딕 Light", 10, "bold"))
         self.sort_lbl.pack(side=tk.LEFT)
@@ -116,7 +118,7 @@ class LostAndFound:
     
 class Lost: #각 분실물을 객체로 하는 클래스스
 
-    def __init__(self, name, time, loc, img, board_l, board_f ml):
+    def __init__(self, name, time, loc, img, board_l, board_f, ml):
         self.name=name #변수 저장
         self.time=tuple(time.split('.'))
         self.loc=loc
@@ -133,7 +135,7 @@ class Lost: #각 분실물을 객체로 하는 클래스스
         self.statetime = tk.Label(self.frm, text = f"예상 분실 시간: {self.time[0]}:{self.time[1]}" if self.state==0 else f"찾은 위치: {self.find_time}")
         self.stateloc = tk.Label(self.frm, text = f"예상 분실 위치: {self.loc}" if self.state==0 else f"찾은 위치: {self.find_loc}")
         self.stateimg = tk.Label(self.frm, text = f"이미지: {self.img}")
-        self.statestate = tk.Label(self.frm, text = f"현재 상태: {['찾음','못 찾음'](self.state)}")
+        self.statestate = tk.Label(self.frm, text = f"현재 상태: {['찾음','못 찾음'][self.state]}")
         self.statesubmit = tk.Button(self.frm, text="분실물 찾음",command=self.foundInput)
         self.statename.pack()
         self.statetime.pack()
