@@ -126,6 +126,7 @@ class Lost: #각 분실물을 객체로 하는 클래스스
         self.board=[board_l,board_f]
         self.ml=ml
         self.state = 0 #'못 찾음'
+        self.frm=tk.Frame(self.board[self.state],padx=10,pady=10, highlightbackground=["yellow","blue"][self.state], highlightthickness=5)
 
     def showState(self):
         self.frm.destroy()
