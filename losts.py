@@ -1,56 +1,71 @@
 import tkinter as tk
 import pickle
-from tkinter import filedialog
-from PIL import Image, ImageTk
 
 ml=tk.Tk()
 class LostAndFound:
     def __init__(self,ml):
 
-        #######
-        self.image_refs = []
-        ##########
         self.lost_item_list=[]
+        self.found_item_list=[]
         self.sorted_i_l = [] ## 메인 화면 표시의 기준
+        self.sorted_i_f = []
         self.ml=ml
-        self.board_lost = tk.Frame(self.ml)
-        self.board_found = tk.Frame(self.ml)
+
         self.add_bt=tk.Button(ml,text='등록하기', font=('Arial', 9, 'bold'), fg='#4CAF50', bg='white',command=lambda: self.lostInput())
         self.add_bt.pack()
-
+        self.board_lost = tk.Frame(self.ml)
+        self.board_found = tk.Frame(self.ml)
         self.lost_tit = tk.Label(self.board_lost, text='LOST', font=('Arial', 20, 'bold'))
         self.found_tit = tk.Label(self.board_found, text='FOUND', font=('Arial', 20, 'bold'))
         self.lost_tit.pack()
         self.found_tit.pack()
 
+        self.board_lost_ctxt = tk.Frame(self.board_lost)
+        self.board_found_ctxt = tk.Frame(self.board_found)
+
         self.sortLost()
         self.reload()
 
-        self.boards_frm = tk.Frame(self.ml)
-        self.board_lost.pack(side='left',padx=20,pady=20)
-        self.board_found.pack(side='left',padx=20,pady=20)
-
-        self.boards_frm.pack()
+        self.board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
+        self.board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
 
     def reload(self):
-        for wdg in self.board_lost.winfo_children():
+        for wdg in self.board_lost_ctxt.winfo_children():
             wdg.destroy()
+
+        for wdg in self.board_found_ctxt.winfo_children():
+            wdg.destroy()
+
+        self.sort_seq()
 
         for n,inst in enumerate(self.sorted_i_l):
             inst.showState()
             inst.frm.grid(row=n//4, column=n%4)
-        self.board_lost.pack()
+
+        for n,inst in enumerate(self.sorted_i_f):
+            inst.showState()
+            inst.frm.grid(row=n//4, column=n%4)
+
+        self.board_lost_ctxt.pack()
+        self.board_found_ctxt.pack()
 
     def sort_seq(self): #sorted_i_l에 순서를 저장하는 함수
+        for lost in self.lost_item_list:
+            if lost.state==1:
+                self.lost_item_list.remove(lost)
+                self.found_item_list.append(lost)
+            
         self.typ = self.var_sort.get()
         if self.typ == 'u':
             self.sorted_i_l = self.lost_item_list[::-1]
+            self.sorted_i_f = self.found_item_list[::-1]
         if self.typ == 't':
             self.sorted_i_l = sorted(self.lost_item_list, key=lambda x: x.time, reverse=True)
+            self.sorted_i_f = sorted(self.found_item_list, key=lambda x: x.time, reverse=True)
         if self.typ == 'l':
             self.sorted_i_l = sorted(self.lost_item_list, key=lambda x: x.loc)
+            self.sorted_i_f = sorted(self.found_item_list, key=lambda x: x.loc)
         print([(inst.name,inst.time,inst.loc) for inst in self.sorted_i_l])
-        self.reload()
 
     def sortLost(self): ### sorted_i_l 작성성
         self.sort_frm = tk.Frame(self.ml) 
@@ -62,7 +77,7 @@ class LostAndFound:
         self.sort_time_rd = tk.Radiobutton(self.sort_frm, text='잃어버린 날짜',value='t',variable=self.var_sort)
         self.sort_loc_rd = tk.Radiobutton(self.sort_frm, text='잃어버린 위치',value='l',variable=self.var_sort)
 
-        self.sort_bt = tk.Button(self.sort_frm, text="정렬", command= self.sort_seq) ## 정렬 버튼
+        self.sort_bt = tk.Button(self.sort_frm, text="정렬", command= self.reload) ## 정렬 버튼
 
         self.sort_upload_rd.pack(side=tk.LEFT, padx=5) #pack
         self.sort_time_rd.pack(side=tk.LEFT, padx=5)
@@ -76,11 +91,7 @@ class LostAndFound:
         self.window=tk.Toplevel(self.ml)
 
         def assign(): #제출 버튼을 누를 시 등록하는 함수
-
-            ############3
-            self.lost_item=Lost(self.name_et.get(),self.time_et.get(),self.loc_et.get(),self.img_path,self.board_lost,self.board_found,self.ml) #객체 생성
-            ############
-
+            self.lost_item=Lost(self.name_et.get(),self.time_et.get(),self.loc_et.get(),self.image_et.get(),self.board_lost_ctxt,self.board_found_ctxt,self.ml) #객체 생성
             self.lost_item_list.append(self.lost_item)
             self.sort_seq()
             
@@ -103,13 +114,8 @@ class LostAndFound:
         self.loc_prmpt = tk.Label(self.loc_frm, text = "잃어버린 위치:")
         self.loc_et = tk.Entry(self.loc_frm)
 
-        ####이미지 등록하기################
-        self.img_path = None
-        ####self.img_path = r"C:\Users\user\Documents\Code - Python\정보수행 - 분실물게시판\default.jpg"
         self.image_prmpt = tk.Label(self.window, text = "분실물 사진(선택):")  #사진 없을 경우 기본값(기본사진; X표 있는 흰 배경 같은거) 있어야힘
-        self.image_bt = tk.Button(self.window, text = "사진 선택", command=self.select_image)
-        #########################
-
+        self.image_et = tk.Entry(self.window)
 
         self.submit_bt = tk.Button(self.window, text='등록하기',command=lambda:(assign(),self.reload()))
 
@@ -126,19 +132,9 @@ class LostAndFound:
         self.loc_et.pack(side = tk.LEFT)
 
         self.image_prmpt.pack(anchor=tk.W)
-        self.image_bt.pack(anchor=tk.W)
+        self.image_et.pack(anchor=tk.W)
 
         self.submit_bt.pack()
-    
-    #########################################################
-
-    def select_image(self):
-        self.img_path = filedialog.askopenfilename(
-            title="이미지 선택",
-            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")]
-        )
-        
-    ####################################################
     
 class Lost: #각 분실물을 객체로 하는 클래스스
 
@@ -150,37 +146,32 @@ class Lost: #각 분실물을 객체로 하는 클래스스
         self.board=[board_l,board_f]
         self.ml=ml
         self.state = 0 #'못 찾음'
-        self.frm=tk.Frame(self.board[self.state],padx=10,pady=10, highlightbackground=["yellow","blue"][self.state], highlightthickness=5)
+        self.frm=tk.Frame(self.board[self.state],width=70, height=110, padx=10,pady=10, highlightbackground=["yellow","blue"][self.state], highlightthickness=5)
 
     def showState(self):
         self.frm.destroy()
-        self.frm=tk.Frame(self.board[self.state],padx=10,pady=10, highlightbackground=["yellow","blue"][self.state], highlightthickness=5)
+        self.frm=tk.Frame(self.board[self.state],width=70, height=110, padx=10,pady=10, highlightbackground=["yellow","blue"][self.state], highlightthickness=5)
 
         self.statename = tk.Label(self.frm, text = f"분실물 이름: {self.name}")
-        self.statetime = tk.Label(self.frm, text = f"예상 분실 시간: {self.time[0]}:{self.time[1]}" if self.state==0 else f"찾은 위치: {self.find_time}")
+        self.statetime = tk.Label(self.frm, text = f"예상 분실 시간: {self.time[0]}:{self.time[1]}" if self.state==0 else f"찾은 시간간: {self.find_time}")
         self.stateloc = tk.Label(self.frm, text = f"예상 분실 위치: {self.loc}" if self.state==0 else f"찾은 위치: {self.find_loc}")
-
-        image = Image.open(self.img)
-        image = image.resize((100, 100))  # 크기 조정
-        photo = ImageTk.PhotoImage(image)
-        self.photo = photo
-        self.stateimg = tk.Label(self.frm, image = self.photo)
-
-        self.statestate = tk.Label(self.frm, text = f"현재 상태: {['찾음','못 찾음'][self.state]}")
+        self.stateimg = tk.Label(self.frm, text = f"이미지: {self.img}")
+        self.statestate = tk.Label(self.frm, text = f"현재 상태: {['못 찾음','찾음'][self.state]}")
         self.statesubmit = tk.Button(self.frm, text="분실물 찾음",command=self.foundInput)
         self.statename.pack()
         self.statetime.pack()
         self.stateloc.pack()
-        self.stateimg.pack(anchor = "w")
+        self.stateimg.pack()
         self.statestate.pack()
         self.statesubmit.pack()
 
     def foundInput(self):
             
         self.window =tk.Toplevel(self.ml)
+        self.window.title('분실물 찾아주기')
 
         def foundassign(): #제출 버튼을 누를 시 등록하는 함수
-            self.state=1 #찾음음
+            self.state=1 #찾음
             self.find_time=self.time_et.get().split('.')
             self.find_loc=self.loc_et.get()
             self.showState()
