@@ -1,4 +1,4 @@
-########합침
+#합침, 이미지 없이 등록 가능
 import tkinter as tk
 import pickle
 from tkinter import filedialog
@@ -98,7 +98,7 @@ class LostAndFound:
         def assign(): #제출 버튼을 누를 시 등록하는 함수
             self.lost_item=Lost(self.name_et.get(),self.time_et.get(),self.loc_et.get(),self.img_path,self.board_lost_ctxt,self.board_found_ctxt,self.ml) #객체 생성
             self.lost_item_list.append(self.lost_item)
-            self.sort_seq()
+            self.reload()
             
             # lost_item.showState()
 
@@ -176,12 +176,13 @@ class Lost: #각 분실물을 객체로 하는 클래스스
         self.statestate.pack()
         self.statesubmit.pack()
 
-        image = Image.open(self.img)
-        image = image.resize((100, 100))  # 크기 조정
-        photo = ImageTk.PhotoImage(image)
-        self.photo = photo
-        self.stateimg = tk.Label(self.frm, image = self.photo)
-        self.stateimg.pack(anchor = "w")
+        if self.img:
+            image = Image.open(self.img)
+            image = image.resize((100, 100))  # 크기 조정
+            photo = ImageTk.PhotoImage(image)
+            self.photo = photo
+            self.stateimg = tk.Label(self.frm, image = self.photo)
+            self.stateimg.pack(anchor = "w")
 
     def foundInput(self):
             
