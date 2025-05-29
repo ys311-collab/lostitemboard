@@ -8,7 +8,9 @@ from sortlost import sort_seq
 
 def start():
     
-    def reload_data():
+    def reload_data(*args):
+        for lost_inst in lost_item_list+found_item_list:
+            lost_inst.trigger.trace_add("write",reload_data)
 
         for w in board_lost_ctxt.winfo_children(): w.destroy()
         for w in board_found_ctxt.winfo_children(): w.destroy()
@@ -40,8 +42,6 @@ def start():
             lost_item_list.append(lost_item)
             save_data()
             reload_data()
-            for lost_inst in lost_item_list+found_item_list:
-                lost_inst.trigger.trace_add(reload_data())
             window.destroy()
 
         tk.Button(window, text='등록', command=assign).pack()
@@ -78,7 +78,7 @@ def start():
     sort_upload_rd = tk.Radiobutton(sort_frm, text='업로드 날짜', value='u', variable=var_sort)
     sort_time_rd = tk.Radiobutton(sort_frm, text='잃어버린 날짜', value='t', variable=var_sort)
     sort_loc_rd = tk.Radiobutton(sort_frm, text='잃어버린 위치', value='l', variable=var_sort)
-    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data(board_lost_ctxt, board_found_ctxt, var_sort))
+    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data())
     
     #sortdata의 함수 reload_data 사용용
     sort_upload_rd.pack(side=tk.LEFT, padx=5)
