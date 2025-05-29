@@ -13,7 +13,7 @@ class Lost: #클래스명명
         self.board = [board_l, board_f]
         self.ml = ml
         self.state = 0
-        self.trigger=tk.StringVar(master=self.ml)
+        self.trigger=tk.BooleanVar(value=False,master=self.ml)
         self.frm = tk.Frame(self.board[self.state], width=70, height=110, padx=10, pady=10,
                             highlightbackground=["yellow", "blue"][self.state], highlightthickness=5)
 
@@ -63,4 +63,4 @@ class Lost: #클래스명명
         self.state = 1
         self.find_time = time
         self.find_loc = loc
-        self.trigger=True
+        self.trigger.set(True)
