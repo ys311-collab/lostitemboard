@@ -4,27 +4,54 @@ import tkinter as tk
 from fileio import load_data, save_data
 import lost
 from sortlost import sort_seq
-# from searchlost import search_lost
+from searchlost import search
 
 def start():
     
-    def reload_data(*args):
-        for lost_inst in lost_item_list+found_item_list:
-            lost_inst.trigger.trace_add("write",reload_data)
+    typ='lf'
+    def reload_data(type='lf',*args):
+        for w in board.winfo_children():
+            w.pack_forget()
+        for inst in lost_item_list[:]:  # 복사본을 돌면서
+            if inst.state == 1 and inst not in found_item_list:
+                lost_item_list.remove(inst)
+                found_item_list.append(inst)
+        if type=='lf':    
+            for lost_inst in lost_item_list+found_item_list:
+                lost_inst.trigger.trace_add("write",reload_data_prime)
 
-        for w in board_lost_ctxt.winfo_children(): w.destroy()
-        for w in board_found_ctxt.winfo_children(): w.destroy()
-        
-        sorted_i_l, sorted_i_f = sort_seq(var_sort, lost_item_list, found_item_list)
+            for w in board_lost_ctxt.winfo_children(): w.destroy()
+            for w in board_found_ctxt.winfo_children(): w.destroy()
+            
+            sorted_i_l=sort_seq(var_sort,lost_item_list)
+            sorted_i_f=sort_seq(var_sort,found_item_list)
 
-        for n, inst in enumerate(sorted_i_l):
-            inst.showState()
-            inst.frm.grid(row=n//4, column=n%4)
-        for n, inst in enumerate(sorted_i_f):
-            inst.showState()
-            inst.frm.grid(row=n//4, column=n%4)
+            for n, inst in enumerate(sorted_i_l):
+                inst.showState(board_lost_ctxt)
+                inst.frm.grid(row=n//4, column=n%4)
+            for n, inst in enumerate(sorted_i_f):
+                inst.showState(board_found_ctxt)
+                inst.frm.grid(row=n//4, column=n%4)
+            board_lost.pack(side='left')
+            board_found.pack(side='left')
+            
+        elif type=='s':
+            global searched_list
+            print(searched_list)
+            sorted_i_s=sort_seq(var_sort,searched_list)
+            print(sorted_i_s)
+            for w in board_search_ctxt.winfo_children(): w.destroy()
+            if not sorted_i_s:
+                tk.Label(board_search_ctxt, text="검색 결과가 없습니다.").pack()
+            for n, inst in enumerate(sorted_i_s):
+                inst.showState(board_search_ctxt)
+                inst.frm.grid(row=n//4, column=n%4)
+            board_search_ctxt.pack()
+            board_search.pack()
 
-    def lost_input(board_lost_ctxt, board_found_ctxt, ml):
+    def reload_data_prime(*args): reload_data(typ)
+
+    def lost_input(ml):
         def select_image():
             from tkinter import filedialog
             global img_path
@@ -38,31 +65,40 @@ def start():
         tk.Button(window, text="사진 선택", command=select_image).pack()
 
         def assign():
-            lost_item = lost.Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, board_lost_ctxt, board_found_ctxt, ml)
+            lost_item = lost.Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, ml)
             lost_item_list.append(lost_item)
             save_data()
-            reload_data()
+            reload_data(typ)
             window.destroy()
 
         tk.Button(window, text='등록', command=assign).pack()
+    
     ml = tk.Tk()
     ml.title("Lost and Found")
     lost_item_list=[]
     found_item_list=[]
+    searched_list=[]
     load_data()
 
     #등록하기 : datainput 과 연결
     add_bt = tk.Button(ml, text='등록하기', font=('Arial', 9, 'bold'), fg='#4CAF50', bg='white',
-                       command=lambda: lost_input(board_lost_ctxt, board_found_ctxt, ml)) 
+                       command=lambda: lost_input(ml)) 
                         #<- 여기서 datainput의 함수 lost_input 사용용
     add_bt.pack()
 
-    #검색창 : sear
+    #검색창 : searchlost 와 연결
+    def search_int():
+        global searched_list
+        global typ
+        searched_list=search(lost_item_list+found_item_list, search_et.get())
+        print(searched_list)
+        typ='s'
+        reload_data('s')
+
     search_frm = tk.Frame(ml)
     search_et = tk.Entry(search_frm)
-    search_bt = tk.Button(search_frm,text='검색하기')#,command=search)
-    # def search():
-    #     searched_list=serach_lost(search_et.get())
+    search_bt = tk.Button(search_frm,text='검색하기',command=search_int)
+    
     search_et.pack(side='left')
     search_bt.pack(side='left')
     search_frm.pack()
@@ -78,7 +114,7 @@ def start():
     sort_upload_rd = tk.Radiobutton(sort_frm, text='업로드 날짜', value='u', variable=var_sort)
     sort_time_rd = tk.Radiobutton(sort_frm, text='잃어버린 날짜', value='t', variable=var_sort)
     sort_loc_rd = tk.Radiobutton(sort_frm, text='잃어버린 위치', value='l', variable=var_sort)
-    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data())
+    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data('lf'))
     
     #sortdata의 함수 reload_data 사용용
     sort_upload_rd.pack(side=tk.LEFT, padx=5)
@@ -88,24 +124,31 @@ def start():
     sort_frm.pack()
 
     #전체 게시판 관리
-    board_lost = tk.Frame(ml)
-    board_found = tk.Frame(ml)
+    board=tk.Frame(ml)
+    board_lost = tk.Frame(board)
+    board_found = tk.Frame(board)
+    board_search=tk.Frame(board)
     tk.Label(board_lost, text='LOST', font=('Arial', 20, 'bold')).pack()
     tk.Label(board_found, text='FOUND', font=('Arial', 20, 'bold')).pack()
+    tk.Label(board_search,text='SEARCHED', font=('Arial', 20, 'bold')).pack()
 
-    global board_lost_ctxt, board_found_ctxt
     board_lost_ctxt = tk.Frame(board_lost)
     board_found_ctxt = tk.Frame(board_found)
+    board_search_ctxt=tk.Frame(board_search)
     board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
     board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
+    board_search.pack(side='left')
     board_lost_ctxt.pack()
     board_found_ctxt.pack()
+    board_search_ctxt.pack()
+
+    board.pack()
 
     def on_close():
         save_data()
         ml.destroy()
     ml.protocol("WM_DELETE_WINDOW", on_close)
 
-    reload_data() #데이터 재정렬
+    reload_data(typ) #데이터 재정렬
 
     ml.mainloop()
