@@ -4,33 +4,32 @@ import tkinter as tk
 from images import load_image
 
 class Lost: #클래스명명
-    def __init__(self, name, time, loc, img, board_l, board_f, ml):
+    def __init__(self, name, time, loc, img, ml):
         #변수들 지정정
         self.name = name
-        self.time = tuple(time.split('.'))
+        self.time = time
         self.loc = loc
         self.img = img
-        self.board = [board_l, board_f]
         self.ml = ml
         self.state = 0
+        self.data = [self.name,self.time,self.loc,self.img,0]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
-        self.frm = tk.Frame(self.board[self.state], width=70, height=110, padx=10, pady=10,
+        self.frm = tk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
                             highlightbackground=["yellow", "blue"][self.state], highlightthickness=5)
 
-    def showState(self):
+    def showState(self,mother_frm):
         #UI 만들기
         self.frm.destroy()
-        self.frm = tk.Frame(self.board[self.state], width=70, height=110, padx=10, pady=10,
+        self.frm = tk.Frame(mother_frm, width=70, height=110, padx=10, pady=10,
                             highlightbackground=["yellow", "blue"][self.state], highlightthickness=5)
         tk.Label(self.frm, text=f"분실물 이름: {self.name}").pack()
         tk.Label(self.frm, text=f"시간: {self.time[0]}:{self.time[1]}" if self.state==0 else f"찾은 시간: {getattr(self,'find_time','')}").pack()
         tk.Label(self.frm, text=f"위치: {self.loc}" if self.state==0 else f"찾은 위치: {getattr(self,'find_loc','')}").pack()
         tk.Label(self.frm, text=f"상태: {['못 찾음','찾음'][self.state]}").pack()
         if self.img: #이미지 출력
-            photo = load_image(self.img)
-            if photo:
-                tk.Label(self.frm, image=photo).pack(anchor="w")
-                self.photo = photo
+            self.photo = load_image(self.img)
+            if self.photo:
+                tk.Label(self.frm, image=self.photo).pack(anchor="w")
             else:
                 tk.Label(self.frm, text="(이미지 없음)").pack()
         else:
@@ -64,3 +63,4 @@ class Lost: #클래스명명
         self.find_time = time
         self.find_loc = loc
         self.trigger.set(True)
+        self.data = [self.name,self.find_time,self.find_loc,self.img,1]
