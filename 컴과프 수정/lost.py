@@ -12,6 +12,7 @@ class Lost: #클래스명명
         self.img = img_path
         self.ml = ml
         self.state = 0
+        self.check_mine=True
         self.data = [self.name,self.time,self.loc,self.img,0]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
         self.frm = tk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
@@ -36,7 +37,17 @@ class Lost: #클래스명명
             tk.Label(self.frm, text="(이미지 없음)").pack()
         
         #찾기 버튼
-        tk.Button(self.frm, text="찾음", command=self.foundInput).pack()
+        if not self.state:
+            tk.Button(self.frm, text="찾음", command=self.foundInput).pack()
+        if self.check_mine and self.state:
+            def checked():
+                self.check_mine=False
+                self.trigger.set(True)
+            def send_back():
+                self.state=0
+                self.trigger.set(True)
+            tk.Button(self.frm, text="확인", command=checked).pack()
+            tk.Button(self.frm, text="반송하기", command=send_back).pack(side=tk.LEFT)
 
     #찾기 버튼 눌렀을 때 발동 - 새로운 창과 UI 생성성
     def foundInput(self):
