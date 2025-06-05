@@ -4,12 +4,12 @@ import tkinter as tk
 from images import load_image
 
 class Lost: #클래스명명
-    def __init__(self, name, time, loc, img, ml):
+    def __init__(self, name, time, loc, img_path, ml):
         #변수들 지정정
         self.name = name
         self.time = time
         self.loc = loc
-        self.img = img
+        self.img = img_path
         self.ml = ml
         self.state = 0
         self.data = [self.name,self.time,self.loc,self.img,0]
@@ -27,7 +27,7 @@ class Lost: #클래스명명
         tk.Label(self.frm, text=f"위치: {self.loc}" if self.state==0 else f"찾은 위치: {getattr(self,'find_loc','')}").pack()
         tk.Label(self.frm, text=f"상태: {['못 찾음','찾음'][self.state]}").pack()
         if self.img: #이미지 출력
-            self.photo = load_image(self.img)
+            self.photo = load_image(self.img, self.frm)
             if self.photo:
                 tk.Label(self.frm, image=self.photo).pack(anchor="w")
             else:
