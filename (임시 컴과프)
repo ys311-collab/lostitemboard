@@ -1,0 +1,373 @@
+#DATA.PY
+
+import tkinter as tk
+lost_item_list = []
+found_item_list = []
+sorted_i_l = []
+sorted_i_f = []
+img_path = None
+
+#login.py
+
+import tkinter as tk
+from tkinter import messagebox
+
+# 사용자 정보 파일 경로
+USER_FILE = "users.txt"
+
+# 사용자 정보 로드 함수
+def load_user_data():
+    users = {}
+    try:
+        with open(USER_FILE, "r") as f:
+            for line in f:
+                id_, pw = line.strip().split(":")
+                users[id_] = pw
+    except FileNotFoundError:
+        pass  # 파일 없으면 빈 딕셔너리 유지
+    return users
+
+# 사용자 정보 저장 함수 (추가)
+def save_user_data(users):
+    with open(USER_FILE, "w") as f:
+
+
+#
+        for id_, pw in users.items():
+            f.write(f"{id_}:{pw}\n")
+
+
+
+#lostanfound.py
+
+#게시판 생성 / 게시판의 전체적 ui를 여기서 다룸
+import tkinter as tk
+from tkinter import ttk
+from ttkthemes import ThemedTk
+from PIL import Image, ImageTk
+
+from fileio import load_data, save_data
+import lost
+from sortlost import sort_seq
+# from searchlost import search_lost
+
+from login import *
+from theme import *
+from data import *
+
+user = ''
+def start():
+
+
+    def reload_data(*args):
+
+        for lost_inst in lost_item_list+found_item_list:
+            lost_inst.trigger.trace_add("write",reload_data)
+
+        for w in board_lost_ctxt.winfo_children(): w.destroy()
+        for w in board_found_ctxt.winfo_children(): w.destroy()
+        
+        sorted_i_l, sorted_i_f = sort_seq(var_sort, lost_item_list, found_item_list)
+
+        for n, inst in enumerate(sorted_i_l):
+            inst.showState()
+            inst.frm.grid(row=n//4, column=n%4)
+        for n, inst in enumerate(sorted_i_f):
+            inst.showState()
+            inst.frm.grid(row=n//4, column=n%4)
+
+    def lost_input(board_lost_ctxt, board_found_ctxt, ml):
+        def select_image():
+            from tkinter import filedialog
+            global img_path
+            img_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")])
+        window = tk.Toplevel(ml)
+        window.title("Input Lost Item")
+        name_et, time_et, loc_et = tk.Entry(window), tk.Entry(window), tk.Entry(window)
+        tk.Label(window, text="Name:",font=('Helvetica', 9, 'bold'),fg='#555B6E').pack(); name_et.pack()
+        tk.Label(window, text="Time(MonthDayHour(052916)):",font=('Helvetica', 9, 'bold'),fg='#555B6E').pack(); time_et.pack()
+        tk.Label(window, text="Location:",font=('Helvetica', 9, 'bold'),fg='#555B6E').pack(); loc_et.pack()
+        tk.Button(window, text="Select Photo",font=('Helvetica', 9, 'bold'), fg='#555B6E', command=select_image).pack()
+
+        def assign():
+            lost_item = lost.Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, board_lost_ctxt, board_found_ctxt, ml)
+            lost_item_list.append(lost_item)
+            save_data()
+            reload_data()
+            window.destroy()
+
+        tk.Button(window, text='submit', command=assign).pack()
+    ml = tk.Tk()
+    ml.title("Lost and Found")
+    ml.configure(bg = '#FAF9F9')
+    ######################################################################
+
+    ###
+    lost_item_list=[]
+    found_item_list=[]
+    load_data()
+
+    #등록하기 : datainput 과 연결
+    add_bt = tk.Button(ml, text='submit', font=('Helvetica', 9, 'bold'), fg='#89B0AE', bg='#FAF9F9',
+                        command=lambda: lost_input(board_lost_ctxt, board_found_ctxt, ml)) 
+                        #<- 여기서 datainput의 함수 lost_input 사용용
+    add_bt.pack()
+
+    #검색창 : sear
+    search_frm = tk.Frame(ml)
+    search_et = tk.Entry(search_frm)
+    search_bt = tk.Button(search_frm,text='Search')#,command=search)
+    # def search():
+    #     searched_list=serach_lost(search_et.get())
+    search_et.pack(side='left')
+    search_bt.pack(side='left')
+    search_frm.pack()
+
+    #정렬하기
+    #정렬 프레임
+    sort_frm = tk.Frame(ml)
+    sort_lbl = tk.Label(sort_frm, text="Sort", font=("Helvetica", 10, "bold"))
+    sort_lbl.pack(side=tk.LEFT)
+
+    #정렬 옵션 선택: sortdata와 연결
+    var_sort = tk.StringVar(value='u')
+    sort_upload_rd = tk.Radiobutton(sort_frm, text='Upload Date', font=('Helvetica', 10, 'bold'),fg='#555B6E', value='u', variable=var_sort)
+    sort_time_rd = tk.Radiobutton(sort_frm, text='Lost Date', font=('Helvetica',10, 'bold'), fg='#555B6E', value='t', variable=var_sort)
+    sort_loc_rd = tk.Radiobutton(sort_frm, text='Lost Location', font=('Helvetica',10, 'bold'),fg='#555B6E', value='l', variable=var_sort)
+    sort_bt = tk.Button(sort_frm, text="Sort", command=lambda: reload_data())
+
+    #sortdata의 함수 reload_data 사용용
+    sort_upload_rd.pack(side=tk.LEFT, padx=5)
+    sort_time_rd.pack(side=tk.LEFT, padx=5)
+    sort_loc_rd.pack(side=tk.LEFT, padx=5)
+    sort_bt.pack(side=tk.LEFT, padx=10)
+    sort_frm.pack()
+
+    #전체 게시판 관리
+
+
+    menubar = tk.Menu(ml)
+
+
+        # 로그인 함수
+    def login(ml):
+
+        window = tk.Toplevel(ml)
+
+        tk.Label(window, text="ID").pack()
+        entry_id = tk.Entry(window)
+        entry_id.pack()
+
+        tk.Label(window, text="Password").pack()
+        entry_pw = tk.Entry(window, show="*")
+        entry_pw.pack()
+        
+        def check_login():
+            username = entry_id.get()
+            password = entry_pw.get()
+
+            users = load_user_data()
+            if username in users and users[username] == password:
+                messagebox.showinfo("Login Sucessful!", f"Welcome {username}")
+                global user
+                user = username
+                window.destroy()
+                update_login_menu()
+
+            else:
+                messagebox.showerror("Failed to Login", "Id or password is wrong.")
+
+            
+        tk.Button(window, text="Login", command=check_login).pack(pady=5)
+
+
+
+    # 회원가입 함수
+    def create_id(ml):
+
+        window = tk.Toplevel(ml)
+
+        tk.Label(window, text="Id").pack()
+        entry_id = tk.Entry(window)
+        entry_id.pack()
+
+        tk.Label(window, text="Password").pack()
+        entry_pw = tk.Entry(window, show="*")
+        entry_pw.pack()
+
+        def register():
+            username = entry_id.get()
+            password = entry_pw.get()
+
+            if not username or not password:
+                messagebox.showwarning("입력 오류", "아이디와 비밀번호를 모두 입력하세요.")
+                return
+
+            users = load_user_data()
+            if username in users:
+                messagebox.showerror("회원가입 실패", "이미 존재하는 아이디입니다.")
+            else:
+                users[username] = password
+                save_user_data(users)
+                messagebox.showinfo("회원가입 성공", f"{username}님 회원가입 완료!")
+                window.destroy()
+                update_login_menu()
+        tk.Button(window, text="Create ID", command= register).pack(pady=5)
+
+        
+
+    def update_login_menu():
+            # 기존 메뉴 항목 제거
+            loginmenu.delete(0, 'end')
+            if user:
+                loginmenu.add_command(label="My Page", command=mypage)
+                loginmenu.add_command(label="Logout", command=logout)
+            else:
+                loginmenu.add_command(label="Create ID", command= lambda : create_id(ml))
+                loginmenu.add_command(label="Login", command= lambda: login(ml))
+
+
+    def logout():
+            global user
+            user = ''
+            update_login_menu()
+            messagebox.showinfo("Logout", "You are now logged out.")
+
+    def mypage():
+            messagebox.showinfo("My Page", "Welcome to your profile!")
+
+    def exit(ml):
+            ml.quit()
+
+
+        
+    # 로그인 메뉴 생성
+    loginmenu = tk.Menu(menubar, tearoff=0)
+
+    update_login_menu()
+
+    menubar.add_cascade(label="Login", menu = loginmenu)
+
+    # 테마 메뉴 생성
+    thememenu = tk.Menu(menubar, tearoff=0)
+    thememenu.add_command(label="Modern Basic", command = basic_theme)
+    thememenu.add_command(label="Cozy Cafe", command = cozy_theme)
+    thememenu.add_command(label="Aqua Blue", command = aqua_theme)
+    thememenu.add_command(label="Sunny Day", command = sunny_theme)
+    menubar.add_cascade(label="Theme", menu= thememenu)
+
+
+    # 나가는 메뉴 생성
+    exitmenu = tk.Menu(menubar, tearoff=0)
+    exitmenu.add_command(label="Exit",command = exit(ml))
+    menubar.add_cascade(label= "Exit", menu = exitmenu)
+
+    ml.config(menu=menubar)
+
+
+
+
+
+
+    board_lost = tk.Frame(ml)
+    board_lost.configure(bg='#FAF9F9')
+    board_found = tk.Frame(ml)
+    board_found.configure(bg='#FAF9F9')
+    tk.Label(board_lost, text='LOST', font=('Helvetica', 20, 'bold'),fg='#BEE3DB',bg = '#555B6E').pack()
+    tk.Label(board_found, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
+
+    global board_lost_ctxt, board_found_ctxt
+    board_lost_ctxt = tk.Frame(board_lost)
+    board_lost_ctxt.configure(bg='#555B6E')
+    board_found_ctxt = tk.Frame(board_found)
+    board_found_ctxt.configure(bg='#555B6E')
+    board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
+    board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
+    board_lost_ctxt.pack()
+    board_found_ctxt.pack()
+
+    def on_close():
+        save_data()
+        ml.destroy()
+    ml.protocol("WM_DELETE_WINDOW", on_close)
+
+    reload_data() #데이터 재정렬
+
+    ml.mainloop()
+
+#lost.py
+
+
+from tkinter import ttk
+from ttkthemes import ThemedTk
+
+
+
+import tkinter as tk
+from images import load_image
+
+class Lost: #클래스명명
+    def __init__(self, name, time, loc, img, board_l, board_f, ml):
+        #변수들 지정정
+        self.name = name
+        self.time = tuple(time.split('.'))
+        self.loc = loc
+        self.img = img
+        self.board = [board_l, board_f]
+        self.ml = ml
+        self.state = 0
+        self.trigger=tk.BooleanVar(value = False, master=self.ml)
+        self.frm = tk.Frame(self.board[self.state], width=70, height=110, padx=10, pady=10,
+                            highlightbackground=['#89B0AE','#FFD6BA' ][self.state], highlightthickness=5)
+
+    def showState(self):
+        #UI 만들기
+        self.frm.destroy()
+        self.frm = tk.Frame(self.board[self.state], width=70, height=110, padx=10, pady=10,
+                            highlightbackground=['#89B0AE','#FFD6BA' ][self.state], highlightthickness=5)
+        tk.Label(self.frm, text=f"Name: {self.name}").pack()
+        tk.Label(self.frm, text=f"Time: {self.time[0]}:{self.time[1]}" if self.state==0 else f"Found Time: {getattr(self,'find_time','')}").pack()
+        tk.Label(self.frm, text=f"Location: {self.loc}" if self.state==0 else f"Found Location: {getattr(self,'find_loc','')}").pack()
+        tk.Label(self.frm, text=f"State: {['Not Found','Found'][self.state]}").pack()
+        if self.img: #이미지 출력
+            photo = load_image(self.img)
+            if photo:
+                tk.Label(self.frm, image=photo).pack(anchor="w")
+                self.photo = photo
+            else:
+                tk.Label(self.frm, text="(No Image)").pack()
+        else:
+            tk.Label(self.frm, text="(No Image)").pack()
+        
+        #찾기 버튼
+        tk.Button(self.frm, text="Found", command=self.foundInput).pack()
+
+    #찾기 버튼 눌렀을 때 발동 - 새로운 창과 UI 생성성
+    def foundInput(self):
+        window = tk.Toplevel(self.ml)
+        window.title('Input Found Item')
+        time_frm = tk.Frame(window)
+        tk.Label(time_frm, text="Found Time:").pack(side=tk.LEFT)
+        time_et = tk.Entry(time_frm)
+        time_et.pack(side=tk.LEFT)
+        time_frm.pack(anchor=tk.W)
+
+        loc_frm = tk.Frame(window)
+        tk.Label(loc_frm, text="Found Location:").pack(side=tk.LEFT)
+        loc_et = tk.Entry(loc_frm)
+        loc_et.pack(side=tk.LEFT)
+        loc_frm.pack(anchor=tk.W)
+
+        #찾기 버튼튼
+        find_bt=tk.Button(window, text='Submit Found Item', command=lambda: (self.setFound(time_et.get(), loc_et.get()), window.destroy()))
+        find_bt.pack()
+
+    def setFound(self, time, loc):
+        self.state = 1
+        self.find_time = time
+        self.find_loc = loc
+        self.trigger.set(True)
+
+
+
+
