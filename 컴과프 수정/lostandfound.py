@@ -13,10 +13,13 @@ def start():
     def reload_data(type='lf',*args):
         for w in board.winfo_children():
             w.pack_forget()
-        for inst in lost_item_list[:]:  # 복사본을 돌면서
+        for inst in lost_item_list[:]+found_item_list[:]:  # 복사본을 돌면서
             if inst.state == 1 and inst not in found_item_list:
                 lost_item_list.remove(inst)
                 found_item_list.append(inst)
+            if inst.state == 0 and inst not in lost_item_list:
+                found_item_list.remove(inst)
+                lost_item_list.append(inst)
         if type=='lf':    
             for lost_inst in lost_item_list+found_item_list:
                 lost_inst.trigger.trace_add("write",reload_data_prime)
@@ -37,7 +40,7 @@ def start():
             board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             
         elif type=='s':
-            global searched_list
+            global searched_list #######
             sorted_i_s=sort_seq(var_sort.get(),searched_list)[:]
             for w in board_search_ctxt.winfo_children(): w.destroy()
             if not sorted_i_s:
@@ -48,13 +51,24 @@ def start():
             board_search_ctxt.pack()
             board_search.pack()
 
+        elif type=='user':
+            sorted_i_u=sort_seq(var_sort.get(),user_list)[:]
+            for w in board_search_ctxt.winfo_children(): w.destroy()
+            if not sorted_i_u:
+                tk.Label(board_search_ctxt, text="아직 게시물이 없습니다.").pack()
+            for n, inst in enumerate(sorted_i_u):
+                inst.showState(board_mypage_ctxt)
+                inst.frm.grid(row=n//4, column=n%4)
+            board_mypage_ctxt.pack()
+            board_mypage.pack()
+
     def reload_data_prime(*args): reload_data(typ)
 
     ##입력력
     def lost_input(ml):
         def select_image():
             from tkinter import filedialog
-            global img_path
+            global img_path ##########3
             img_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")])
         window = tk.Toplevel(ml)
         window.title("분실물 입력하기")
@@ -78,6 +92,7 @@ def start():
     lost_item_list=[]
     found_item_list=[]
     searched_list=[]
+    user_list=[]
     load_data()
 
     #등록하기 : datainput 과 연결
@@ -88,8 +103,8 @@ def start():
 
     #검색창 : searchlost 와 연결
     def search_int():
-        global searched_list
-        global typ
+        global searched_list ###33
+        global typ #######
         searched_list=search(lost_item_list+found_item_list, search_et.get().strip())[:]
         typ='s'
         reload_data('s')
@@ -126,21 +141,41 @@ def start():
     board_lost = tk.Frame(board)
     board_found = tk.Frame(board)
     board_search=tk.Frame(board)
+    board_mypage=tk.Frame(board)
     tk.Label(board_lost, text='LOST', font=('Arial', 20, 'bold')).pack()
     tk.Label(board_found, text='FOUND', font=('Arial', 20, 'bold')).pack()
     tk.Label(board_search,text='SEARCHED', font=('Arial', 20, 'bold')).pack()
+    tk.Label(board_mypage, text='MYPAGE', font=('Arial', 20, 'bold')).pack()
 
     board_lost_ctxt = tk.Frame(board_lost)
     board_found_ctxt = tk.Frame(board_found)
     board_search_ctxt=tk.Frame(board_search)
+    board_mypage_ctxt=tk.Frame(board_mypage)
     board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
     board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
     board_search.pack(side='left')
+    board_mypage.pack(side='left')
     board_lost_ctxt.pack()
     board_found_ctxt.pack()
     board_search_ctxt.pack()
+    board_mypage_ctxt.pack()
 
     board.pack()
+
+    def login():
+        #login함수 세부 처리 넣기
+        global user_list #######3
+        global typ #######
+        user=login_et.get()
+        user_list=list(filter(lambda x: x.username==user,lost_item_list+found_item_list))
+        typ=user
+        reload_data(type='user')
+
+    #로그인 버튼 (임시)
+    login_et=tk.Entry(ml, text='user id')
+    login_bt=tk.Button(ml,text='login',command=login)
+    login_et.pack()
+    login_bt.pack()
 
     def on_close():
         save_data()
