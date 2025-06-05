@@ -9,6 +9,7 @@ from searchlost import search
 def start():
     
     typ='lf'
+    ## 새로고침침
     def reload_data(type='lf',*args):
         for w in board.winfo_children():
             w.pack_forget()
@@ -23,8 +24,8 @@ def start():
             for w in board_lost_ctxt.winfo_children(): w.destroy()
             for w in board_found_ctxt.winfo_children(): w.destroy()
             
-            sorted_i_l=sort_seq(var_sort,lost_item_list)
-            sorted_i_f=sort_seq(var_sort,found_item_list)
+            sorted_i_l=sort_seq(var_sort.get(),lost_item_list)[:]
+            sorted_i_f=sort_seq(var_sort.get(),found_item_list)[:]
 
             for n, inst in enumerate(sorted_i_l):
                 inst.showState(board_lost_ctxt)
@@ -32,14 +33,12 @@ def start():
             for n, inst in enumerate(sorted_i_f):
                 inst.showState(board_found_ctxt)
                 inst.frm.grid(row=n//4, column=n%4)
-            board_lost.pack(side='left')
-            board_found.pack(side='left')
+            board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
+            board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             
         elif type=='s':
             global searched_list
-            print(searched_list)
-            sorted_i_s=sort_seq(var_sort,searched_list)
-            print(sorted_i_s)
+            sorted_i_s=sort_seq(var_sort.get(),searched_list)[:]
             for w in board_search_ctxt.winfo_children(): w.destroy()
             if not sorted_i_s:
                 tk.Label(board_search_ctxt, text="검색 결과가 없습니다.").pack()
@@ -51,6 +50,7 @@ def start():
 
     def reload_data_prime(*args): reload_data(typ)
 
+    ##입력력
     def lost_input(ml):
         def select_image():
             from tkinter import filedialog
@@ -68,7 +68,7 @@ def start():
             lost_item = lost.Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, ml)
             lost_item_list.append(lost_item)
             save_data()
-            reload_data(typ)
+            reload_data(type=typ)
             window.destroy()
 
         tk.Button(window, text='등록', command=assign).pack()
@@ -90,8 +90,7 @@ def start():
     def search_int():
         global searched_list
         global typ
-        searched_list=search(lost_item_list+found_item_list, search_et.get())
-        print(searched_list)
+        searched_list=search(lost_item_list+found_item_list, search_et.get().strip())[:]
         typ='s'
         reload_data('s')
 
@@ -110,16 +109,15 @@ def start():
     sort_lbl.pack(side=tk.LEFT)
 
     #정렬 옵션 선택: sortdata와 연결
-    var_sort = tk.StringVar(value='u')
-    sort_upload_rd = tk.Radiobutton(sort_frm, text='업로드 날짜', value='u', variable=var_sort)
-    sort_time_rd = tk.Radiobutton(sort_frm, text='잃어버린 날짜', value='t', variable=var_sort)
-    sort_loc_rd = tk.Radiobutton(sort_frm, text='잃어버린 위치', value='l', variable=var_sort)
-    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data('lf'))
-    
-    #sortdata의 함수 reload_data 사용용
-    sort_upload_rd.pack(side=tk.LEFT, padx=5)
-    sort_time_rd.pack(side=tk.LEFT, padx=5)
-    sort_loc_rd.pack(side=tk.LEFT, padx=5)
+    var_sort = tk.StringVar(value='u',master=ml)
+    tk.Radiobutton(sort_frm,text='업로드 순',value='u',variable=var_sort).pack(side='left')
+    tk.Radiobutton(sort_frm,text='잃어버린 날짜',value='t',variable=var_sort).pack(side='left')
+    tk.Radiobutton(sort_frm,text='잃어버린 위치',value='l',variable=var_sort).pack(side='left')
+
+    sort_bt = tk.Button(sort_frm, text="정렬", command=lambda: reload_data_sort())
+    def reload_data_sort():
+        reload_data(typ)
+
     sort_bt.pack(side=tk.LEFT, padx=10)
     sort_frm.pack()
 
