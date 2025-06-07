@@ -11,11 +11,14 @@ from lost import Lost
 from cag import LostCAG #Lost ComeAndGet, 잃어버린 것 같다고 생각되는는 물건 관리
 from sortlost import sort_seq
 from searchlost import search
-from images import select_image
+from images import select_image, load_image
 from login import load_user_data, save_user_data
 #endregion Method
 
 def start():
+
+    with open('./login_state.txt','w') as f:
+        f.write('')
     
     ## 새로고침
     def reload_data(type='lf',*args):
@@ -144,7 +147,7 @@ def start():
                 img_path=select_image()
 
             def assign():
-                lost_item = LostCAG(name_et.get(), loc_et.get(), char_txt.get("1.0", "end-1c"), img_path, user, ml)
+                lost_item = LostCAG(name_et.get(), loc_et.get(), char_txt.get("1.0", "end-1c"), img_path, user,ml)
                 cag_item_list.append(lost_item)
                 reload_data(type=typ)
                 window.destroy()
@@ -180,6 +183,12 @@ def start():
     submit_bt.pack_forget()  # 처음에는 숨기기
 
     #endregion Method
+
+    def to_home():
+        global typ
+        typ='lf'
+        reload_data(typ)
+    tk.Button(ml,text='HOME',command=to_home).pack()
 
     #검색하기 
     # region Method
@@ -261,8 +270,11 @@ def start():
                 messagebox.showinfo("Login Sucessful!", f"Welcome {username}")
                 global user
                 user = username
+                with open ('./login_state.txt', 'w') as f:
+                    f.write(user) 
                 window.destroy()
                 update_login_menu()
+                reload_data(typ)
                 #login함수 세부 처리 넣기
 
             else:
@@ -306,6 +318,8 @@ def start():
     def logout():
             global user
             user = ''
+            with open ('./login_state.txt', 'w') as f:
+                f.write('') 
             update_login_menu()
             messagebox.showinfo("Logout", "You are now logged out.")
 
