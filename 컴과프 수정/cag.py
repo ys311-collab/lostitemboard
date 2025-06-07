@@ -19,13 +19,24 @@ class LostCAG:
                             highlightbackground="green", highlightthickness=5)
 
     def showState(self,mother_frm):
+        #찾기 버튼
+        def retrieval():
+            self.retrieved = True
+            with open('./login_state.txt', 'r') as f:
+                self.got_user = f.readline().strip()
+            self.trigger.set(True)
+
+        def check_rt():
+            pass
+
+
         #UI 만들기
         self.frm.destroy()
         self.frm = tk.Frame(mother_frm, width=70, height=110, padx=10, pady=10,
                             highlightbackground="green", highlightthickness=5)
         tk.Label(self.frm, text = f"User: {self.username}").pack()
         tk.Label(self.frm, text=f"Lost: {self.name}").pack()
-        tk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'got it').pack(anchor=tk.E)
+        tk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{self.got_user} got it').pack(anchor=tk.E)
         tk.Label(self.frm, text=f"Loc: {self.loc}").pack()
         tk.Label(self.frm, text=f"{self.char}\n{' '.join(map(lambda x: '#'+x, self.tags))}").pack()
         if self.img: #이미지 출력
@@ -36,13 +47,10 @@ class LostCAG:
                 tk.Label(self.frm, text="(No Image)").pack()
         else:
             tk.Label(self.frm, text="(No Image)").pack()
-        
-        #찾기 버튼
-        def retrieval():
-            self.retrieved=True
-            self.trigger.set(True)
-            retrieve_bt.pack_forget()
 
         if not self.retrieved:
             retrieve_bt=tk.Button(self.frm, text="I Got It!", command=lambda: retrieval())
             retrieve_bt.pack()
+        if self.retrieved:
+            check_rt_bt=tk.Button(self.frm, text="It's mine!", command=lambda: check_rt())
+            check_rt_bt.pack()
