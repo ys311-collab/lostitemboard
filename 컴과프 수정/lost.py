@@ -1,28 +1,28 @@
-
-from tkinter import ttk
-from ttkthemes import ThemedTk
+#분실물 하나하나를 객체로 하는 클래스. 개별 ui설정, 찾기 기능 여기서 다룸룸
 
 import tkinter as tk
 from images import load_image
 
+from tkinter import ttk
+from ttkthemes import ThemedTk
+
 class Lost: #클래스명명
     def __init__(self, name, time, loc, img_path, username, ml):
         #변수들 지정정
-        global user
         self.name = name
         self.time = time
         self.loc = loc
         self.img = img_path
         self.ml = ml
         self.state = 0
-        self.check_mine=True
         self.username = username
+        self.check_mine=True
         self.data = [self.name,self.time,self.loc,self.img,0]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
         self.frm = tk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
                             highlightbackground=["yellow", "blue"][self.state], highlightthickness=5)
 
-    def showState(self,mother_frm,mypage = False):
+    def showState(self,mother_frm, mypage=False):
         #UI 만들기
         self.frm.destroy()
         self.frm = tk.Frame(mother_frm, width=70, height=110, padx=10, pady=10,
@@ -44,16 +44,15 @@ class Lost: #클래스명명
         #찾기 버튼
         if not self.state:
             tk.Button(self.frm, text="Found", command=self.foundInput).pack()
-        if mypage and getattr(self, 'check_mine', True) and self.state:
+        if self.check_mine and self.state:
             def checked():
                 self.check_mine=False
                 self.trigger.set(True)
             def send_back():
                 self.state=0
                 self.trigger.set(True)
-
-                tk.Button(self.frm, text="It's Mine!", command=checked).pack()
-                tk.Button(self.frm, text="Not Mine", command=send_back).pack(side=tk.LEFT)
+            tk.Button(self.frm, text="It's Mine!", command=checked).pack()
+            tk.Button(self.frm, text="Not Mine", command=send_back).pack(side=tk.LEFT)
 
     #찾기 버튼 눌렀을 때 발동 - 새로운 창과 UI 생성성
     def foundInput(self):
@@ -81,5 +80,3 @@ class Lost: #클래스명명
         self.find_loc = loc
         self.trigger.set(True)
         self.data = [self.name,self.find_time,self.find_loc,self.img,1]
-
-
