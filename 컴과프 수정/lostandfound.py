@@ -16,6 +16,7 @@ from data import *
 
 user = ''
 def start():
+    global user
     typ='lf'
     ## 새로고침침
     def reload_data(type='lf',*args):
@@ -49,10 +50,12 @@ def start():
                 inst.frm.grid(row=n//4, column=n%4)
             for n, inst in enumerate(sorted_i_f):
                 inst.showState(board_found_ctxt)
-                inst.frm.grid(row=n//4, column=n%4)
+                inst.frm.grid(row=n//3, column=n%3)
             board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
-            
+            board.pack(fill='both', expand=True)
+
+
         elif type=='s':
             global searched_list #######
             sorted_i_s=sort_seq(var_sort.get(),searched_list)[:]
@@ -61,16 +64,16 @@ def start():
                 tk.Label(board_search_ctxt, text="No result found.").pack()
             for n, inst in enumerate(sorted_i_s):
                 inst.showState(board_search_ctxt)
-                inst.frm.grid(row=n//4, column=n%4)
+                inst.frm.grid(row=n//3, column=n%3)
             board_search_ctxt.pack()
             board_search.pack()
+            board.pack(fill='both', expand=True)
+
 
         elif type=='user':
             board_lost.pack_forget()
             board_found.pack_forget()
             board_search.pack_forget()
-            lostboard_mypage.pack(side='left')
-            foundboard_mypage.pack(side='left')
             sorted_i_u=sort_seq(var_sort.get(),user_lost_list)[:]
             for w in board_search_ctxt.winfo_children(): w.destroy()
             for w in lostboard_mypage_ctxt.winfo_children(): w.destroy() 
@@ -78,21 +81,22 @@ def start():
             if not sorted_i_u:
                 tk.Label(board_search_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_u):
-                inst.showState(lostboard_mypage_ctxt)
-                inst.frm.grid(row=n//4, column=n%4)
+                inst.showState(lostboard_mypage_ctxt, mypage = True)
+                inst.frm.grid(row=n//3, column=n%3)
 
             lostboard_mypage_ctxt.pack()
-            lostboard_mypage.pack()
+            lostboard_mypage.pack(side = "left")
 
             sorted_i_u1=sort_seq(var_sort.get(),user_found_list)[:]
             if not sorted_i_u1:
                 tk.Label(board_search_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_u1):
-                inst.showState(foundboard_mypage_ctxt)
+                inst.showState(foundboard_mypage_ctxt, mypage = True)
                 inst.frm.grid(row=n//4, column=n%4)
 
             foundboard_mypage_ctxt.pack()
-            foundboard_mypage.pack()
+            foundboard_mypage.pack(side = "right")
+            board.pack(fill='both', expand=True)
     def reload_data_prime(*args): reload_data(typ)
 
     ##입력력
@@ -110,6 +114,7 @@ def start():
         tk.Button(window, text="Select Photo", command=select_image).pack()
 
         def assign():
+            global user
             lost_item = lost.Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, user, ml)
             lost_item_list.append(lost_item)
             save_data()
@@ -255,7 +260,7 @@ def start():
                 window.destroy()
                 update_login_menu()
         tk.Button(window, text="Create ID", command= register).pack(pady=5)
-
+    global user
     #menu reload 함수수
     def update_login_menu():
             # 기존 메뉴 항목 제거
@@ -277,13 +282,13 @@ def start():
 
     def mypage():
             global user
-            messagebox.showinfo("My Page", "Welcome to {user}'s page!")
+            messagebox.showinfo("My Page", "Welcome to {}'s page!".format(user))
             global user_lost_list #######
             global user_found_list #######
             global typ #######
-            user_lost_list=list(filter(lambda x: hasattr(x, 'username') and x.username==user,lost_item_list))
+            user_lost_list=list(filter(lambda x: hasattr(x, 'username') and x.username.strip() == user.strip(),lost_item_list))
                                     #hasattr 추가한 이유: 기존 저장된 객체에 .username 속성이 없을 수 있음음
-            user_found_list=list(filter(lambda x: hasattr(x, 'username') and x.username==user,found_item_list))
+            user_found_list=list(filter(lambda x: hasattr(x, 'username') and x.username.strip() == user.strip(),found_item_list))
             typ= 'user'
             reload_data(typ)
 
@@ -353,7 +358,7 @@ def start():
     tk.Label(board_found, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
     tk.Label(board_search, text='SEARCHED', font=('Helvetica', 20, 'bold'),fg='#BEE3DB',bg = '#555B6E').pack()
     tk.Label(lostboard_mypage, text='LOST', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
-    tk.Label(foundboard_mypage, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
+    tk.Label(foundboard_mypage, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#BEE3DB',bg = '#555B6E').pack()
 
 
     board_search_ctxt=tk.Frame(board_search)
@@ -373,7 +378,8 @@ def start():
 
     board_lost_ctxt, lost_canvas, lost_scrollbar = create_scrollable_frame(board_lost)
     board_found_ctxt, found_canvas, found_scrollbar = create_scrollable_frame(board_found)
-
+    lostboard_mypage_ctxt, lost_canvas, lost_scrollbar = create_scrollable_frame(lostboard_mypage)
+    foundboard_mypage_ctxt, found_canvas, found_scrollbar = create_scrollable_frame(foundboard_mypage)
 
     board.pack()
 
