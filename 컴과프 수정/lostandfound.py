@@ -24,7 +24,7 @@ except ModuleNotFoundError:
 #endregion Method
 
 def start():
-    
+
     with open('./login_state.txt','w') as f: #login 한 사람 저장 -> 다른 파일에서 사용됨
         f.write('')
 
@@ -165,13 +165,11 @@ def start():
 
     def delete_reload(*args):
         for lost_inst in lost_item_list+found_item_list+cag_item_list:
-            print(1)
             if lost_inst.delete_trigger.get()==True:
                 lost_inst.delete_trigger.set(False)
                 if lost_inst in lost_item_list: lost_item_list.remove(lost_inst)
                 elif lost_inst in found_item_list: found_item_list.remove(lost_inst)
                 elif lost_inst in cag_item_list: cag_item_list.remove(lost_inst)
-                print(2)
         reload_data(typ)
         for lost_inst in lost_item_list+found_item_list+cag_item_list:
             lost_inst.delete_trigger.set(False)
@@ -198,7 +196,9 @@ def start():
     def lost_input(ml): #등록하기 버튼 (Submit) 을 누르면 실행되는 함수
         window = tk.Toplevel(ml) #등록하기 창: 새 창이 실행됨
         window.title("분실물 입력하기")
-        frm=ttk.Frame(window) 
+        frm=ttk.Frame(window)
+        global img_path
+        img_path=''
         #창에서 상단의 버튼으로 이루어진 선택창에서 잃어버린 물건 입력 모드와
         # 잃어버린 것 같은 물건 등록 모드를 선택 가능능 
 
