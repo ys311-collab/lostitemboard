@@ -18,41 +18,43 @@ class LostCAG:
         self.retrieved = False
         self.data = [self.name, self.loc, self.char, self.tags, self.img]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
+        self.delete_trigger=tk.BooleanVar(value=False,master=self.ml)
         self.frm = ttk.Frame(self.ml)
 
     def showState(self,mother_frm):
         #찾기 버튼
+        with open('./login_state.txt', 'r') as f:
+            login_user = f.readline().strip()
+
         def retrieval():
             self.retrieved = True
-            with open('./login_state.txt', 'r') as f:
-                self.got_user = f.readline().strip()
             self.trigger.set(True)
-
-        def check_rt():
-            pass
-
 
         #UI 만들기
         self.frm.destroy()
         
         self.frm = ttk.Frame(mother_frm)
+        
+        if login_user==self.username:
+            ttk.Button(self.frm, text = "delete", command=lambda: delete()).pack()
+
+        def delete():
+            self.delete_trigger.set(True)
+        
         ttk.Label(self.frm, text = f"User: {self.username}").pack()
         ttk.Label(self.frm, text=f"Lost: {self.name}").pack()
-        ttk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{self.got_user} got it').pack(anchor=tk.E)
+        ttk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{login_user} got it').pack(anchor=tk.E)
         ttk.Label(self.frm, text=f"Loc: {self.loc}").pack()
         ttk.Label(self.frm, text=f"{self.char}\n{' '.join(map(lambda x: '#'+x, self.tags))}").pack()
-        if self.img: #이미지 출력
+        try: #이미지 출력
             self.photo = load_image(self.img, self.frm)
             if self.photo:
                 ttk.Label(self.frm, image=self.photo).pack(anchor="w")
             else:
                 ttk.Label(self.frm, text="(No Image)").pack()
-        else:
+        except:
             ttk.Label(self.frm, text="(No Image)").pack()
 
         if not self.retrieved:
             retrieve_bt=ttk.Button(self.frm, text="I Got It!", command=lambda: retrieval())
             retrieve_bt.pack()
-        if self.retrieved:
-            check_rt_bt=ttk.Button(self.frm, text="It's mine!", command=lambda: check_rt())
-            check_rt_bt.pack()
