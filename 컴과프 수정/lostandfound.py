@@ -70,13 +70,18 @@ def start():
                 found_item_list.remove(inst)
                 lost_item_list.append(inst)
 
+        delete_trace_list.clear()
+        for lost_inst in lost_item_list+found_item_list+cag_item_list:
+            delete_trace_list.append(lost_inst.delete_trigger.trace_add("write",delete_reload))
+
+        trace_list.clear()
+        for lost_inst in lost_item_list+found_item_list+cag_item_list:
+            trace_list.append(lost_inst.trigger.trace_add("write",reload_data_prime))
+            #객체 내에서 변화한 상태를 감지 후 새로고침
+            #reload_data_prime은 trace_add 함수의 변수를 가변 매개변수 처리로 매개
+
         if type=='lf':    # 기본 홈 게시판 - 잃어버린 물건 lost_item_list, 찾은 물건 found_item_list, 
             #누군가 잃어버린 물건 cag_item_list. 세 리스트가 개별 보드에서 관리
-
-            for lost_inst in lost_item_list+found_item_list+cag_item_list:
-                lost_inst.trigger.trace_add("write",reload_data_prime)
-                #객체 내에서 변화한 상태를 감지 후 새로고침
-                #reload_data_prime은 trace_add 함수의 변수를 가변 매개변수 처리로 매개
 
             #보드 내부 초기화
             for w in board_lost_ctxt.winfo_children(): w.destroy()
@@ -153,7 +158,23 @@ def start():
             typ='lf'
             reload_data(typ)
 
-    def reload_data_prime(*args): reload_data(typ) # trigger.trace_add 매개
+    def reload_data_prime(*args): 
+        reload_data(typ) # trigger.trace_add 매개
+        for lost_inst in lost_item_list+found_item_list+cag_item_list:
+            lost_inst.trigger.set(False)
+
+    def delete_reload(*args):
+        for lost_inst in lost_item_list+found_item_list+cag_item_list:
+            print(1)
+            if lost_inst.delete_trigger.get()==True:
+                lost_inst.delete_trigger.set(False)
+                if lost_inst in lost_item_list: lost_item_list.remove(lost_inst)
+                elif lost_inst in found_item_list: found_item_list.remove(lost_inst)
+                elif lost_inst in cag_item_list: cag_item_list.remove(lost_inst)
+                print(2)
+        reload_data(typ)
+        for lost_inst in lost_item_list+found_item_list+cag_item_list:
+            lost_inst.delete_trigger.set(False)
 
     #변수 정의
     #region Method
@@ -170,6 +191,8 @@ def start():
     user_lost_list=[] # 분실물 게시판의 잃어버린 물건 리스트
     user_found_list = [] # 분실물 게시판의 찾은 물건 리스트
     cag_item_list=[] # 누군가 잃어버린 것 같은 물건 리스트트
+    trace_list=[]
+    delete_trace_list=[]
     #endregion Method
 
     #입력하기
