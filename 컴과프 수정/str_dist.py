@@ -12,13 +12,16 @@ def str_dist(inp,ans):
         for ch in string:
             if is_hangeul(ch): res+=h2j(ch)
             elif ch.isalpha(): res+=ch.lower()
-            else: res+=ch
+            else: pass
         return res
 
     def find_closest(inp,ans,inp_idx,ans_idx):
-        min_dist_list=[max((len(ans)-1-ans_idx),(len(inp)-1-inp_idx)),len(inp)-1,len(ans)-1]
-        for idx in range(inp_idx,len(inp)):
-            next_find=ans_idx+ans[ans_idx:].find(inp[idx]) if inp[idx] in ans[ans_idx:] else len(ans)
+        min_dist_list=[max((len(ans)-1-ans_idx),(len(inp)-1-inp_idx)),len(inp),len(ans)]
+        for idx in range(inp_idx+1,len(inp)):
+            if ans_idx<len(ans)-1 and inp[idx] in ans[ans_idx+1:]:
+                next_find=ans[ans_idx+1:].find(inp[inp_idx])
+            else:
+                next_find=len(ans)
             dist=max(next_find-ans_idx, idx-inp_idx)
             if min_dist_list[0]>dist:
                 min_dist_list=[dist,next_find,idx]
@@ -28,14 +31,16 @@ def str_dist(inp,ans):
 
     dist=0
     inp_rd, ans_rd = 0,0 # 읽고 있는 인덱스 위치
-    while inp_rd<=len(inp)-1 and ans_rd<=len(ans)-1:
-
-        if inp[inp_rd]==ans[ans_rd]:
-            inp_rd+=1
-            ans_rd+=1
-        else: 
-            #오타 발생 !!
-            distance_list=find_closest(inp,ans,inp_rd,ans_rd)
-            dist+=distance_list[0]
-            ans_rd,inp_rd= distance_list[1],distance_list[2]
+    try:
+        while inp_rd<=len(inp)-1 and ans_rd<=len(ans)-1:
+            if inp[inp_rd]==ans[ans_rd]:
+                inp_rd+=1
+                ans_rd+=1
+            else: 
+                #오타 발생 !!
+                distance_list=find_closest(inp,ans,inp_rd,ans_rd)
+                dist+=distance_list[0]
+                ans_rd,inp_rd= distance_list[1],distance_list[2]
+    except Exception as e:
+        print(e)
     return dist
