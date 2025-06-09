@@ -1,4 +1,5 @@
 #누군가 잃어버린 것 같은 물건 관리
+#누군가 잃어버린 것 같은 물건 관리
 import tkinter as tk
 from images import load_image
 from tkinter import ttk
@@ -17,8 +18,7 @@ class LostCAG:
         self.retrieved = False
         self.data = [self.name, self.loc, self.char, self.tags, self.img]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
-        self.frm = ttk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
-                            highlightbackground="green", highlightthickness=5)
+        self.frm = ttk.Frame(self.ml)
 
     def showState(self,mother_frm):
         #찾기 버튼
@@ -34,10 +34,8 @@ class LostCAG:
 
         #UI 만들기
         self.frm.destroy()
-        style = ttk.Style()
-        style.configure("haha.TFrame", width=70, height=110, padx=10, pady=10,
-                            highlightbackground="green", highlightthickness=5)
-        self.frm = ttk.Frame(mother_frm, style = "haha.TFrame")
+        
+        self.frm = ttk.Frame(mother_frm)
         ttk.Label(self.frm, text = f"User: {self.username}").pack()
         ttk.Label(self.frm, text=f"Lost: {self.name}").pack()
         ttk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{self.got_user} got it').pack(anchor=tk.E)
