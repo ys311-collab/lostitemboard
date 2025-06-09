@@ -2,88 +2,78 @@
 #게시판 생성 / 게시판의 전체적 ui를 여기서 다룸
 #module import
 #region Method
-try:
-    import tkinter as tk
-    from tkinter import messagebox
-    from tkinter import ttk
-    from ttkthemes import ThemedTk
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+from ttkthemes import ThemedTk
 
-    # from fileio import load_data, save_data
-    from lost import Lost           #분실물 하나하나를 객체로 클래스
-    from cag import LostCAG         #Lost ComeAndGet, 잃어버린 것 같다고 생각되는 물건을 객체로 가지는 클래스
-    from sortlost import sort_seq   #정렬 함수
-    from searchlost import search   #검색 함수
-    from images import select_image #이미지 입력 함수
-    from login import load_user_data, save_user_data    #로그인 관련 함수수
-    from theme import *             #테마 관련 함수
-
-except ModuleNotFoundError:
-    print('필요 모듈과 파일을 먼저 다운로드 받으세요 !!')
+from lost import Lost
+from cag import LostCAG #Lost ComeAndGet, 잃어버린 것 같다고 생각되는는 물건 관리
+from sortlost import sort_seq
+from searchlost import search
+from images import select_image
+from login import load_user_data, save_user_data
 #endregion Method
 
-#style 정의
-def apply_style():
-    style = ttk.Style()
-    style.configure("FIRST.TLabel",
-                    font=('Helvetica', 12, 'bold'),
-                    foreground= colors[0],
-                    background= colors[2],
-                    )
-        
-    #로그인 창
-    style.configure("SECOND.TLabel",
-                    font=('Helvetica', 12, 'bold'),
-                    foreground=colors[1],
-                    background=colors[3],
-                    )
-        
-    style.configure("FIRST.TButton",
-                    font=('Helvetica', 12, 'bold'),
-                    foreground='white',
-                    background=colors[1],
-                    )
-        
-    style.configure("FIRST.TFrame",
-                    font=('Helvetica', 12, 'bold'),
-                    foreground='white',
-                    background=colors[4],
-                    )
+import os
+import pygame
+pygame.mixer.init()
+
+
+
+
 
 def start():
-    
-    with open('./login_state.txt','w') as f: #login 한 사람 저장 -> 다른 파일에서 사용됨
-        f.write('')
+
+    def play_theme_music(theme_name):
+        theme_music = {
+        'Basic': './bgm_basic.mp3',
+        'Cozy': './bgm_cozy.mp3',
+        'Aqua': './bgm_aqua.mp3',
+        'Sunny': './bgm_sunny.mp3'
+    }
+        pygame.mixer.music.stop()
+        path = theme_music.get(theme_name)
+        if path and os.path.exists(path):
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.play(-1)  # 무한 반복
+
+    def basic_theme():
+        play_theme_music("Basic")
+
+    def cozy_theme():
+        play_theme_music("Cozy")
+
+    def aqua_theme():
+        play_theme_music("Aqua")
+
+    def sunny_theme():
+        play_theme_music("Sunny")
+
+
     ## 새로고침
-    def reload_data(type='lf',*args): #게시판 새로고침 함수 : 배열 및 게시판 형식 새로고침침
-        for w in board.winfo_children(): #기존의 모든 판 제거
+    def reload_data(type='lf',*args):
+        for w in board.winfo_children():
             w.pack_forget()
-        for inst in lost_item_list[:]+found_item_list[:]:  # 잃어버린 물건과 찾은 물건 재정렬
+        for inst in lost_item_list[:]+found_item_list[:]:  # 복사본을 돌면서
             if inst.state == 1 and inst not in found_item_list:
                 lost_item_list.remove(inst)
                 found_item_list.append(inst)
             if inst.state == 0 and inst not in lost_item_list:
                 found_item_list.remove(inst)
                 lost_item_list.append(inst)
-
-        if type=='lf':    # 기본 홈 게시판 - 잃어버린 물건 lost_item_list, 찾은 물건 found_item_list, 
-            #누군가 잃어버린 물건 cag_item_list. 세 리스트가 개별 보드에서 관리
-
+        if type=='lf':    
             for lost_inst in lost_item_list+found_item_list+cag_item_list:
                 lost_inst.trigger.trace_add("write",reload_data_prime)
-                #객체 내에서 변화한 상태를 감지 후 새로고침
-                #reload_data_prime은 trace_add 함수의 변수를 가변 매개변수 처리로 매개
 
-            #보드 내부 초기화
             for w in board_lost_ctxt.winfo_children(): w.destroy()
             for w in board_found_ctxt.winfo_children(): w.destroy()
             for w in board_cag_ctxt.winfo_children(): w.destroy()
-        
-            #게시물을 정렬한 리스트 sortlost의 sort_seq 사용
+            
             sorted_i_l=sort_seq(var_sort.get(),lost_item_list)[:]
             sorted_i_f=sort_seq(var_sort.get(),found_item_list)[:]
             sorted_i_cag=sort_seq('u',cag_item_list)
-            
-            #게시물 배치 - 정렬된 것을 바탕으로 함. 한 줄에 3개씩 배치
+
             for n, inst in enumerate(sorted_i_l):
                 inst.showState(board_lost_ctxt)
                 inst.frm.grid(row=n//3, column=n%3)
@@ -93,34 +83,30 @@ def start():
             for n, inst in enumerate(sorted_i_cag):
                 inst.showState(board_cag_ctxt)
                 inst.frm.grid(row=n//3, column=n%3)
-
-            #각각 게시판 업로드
             board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             board_cag.pack(side="left", padx=2, pady=2, fill="both", expand=True)
             
-        elif type=='s': #검색 게시판: 검색 버튼을 눌렀을 때 작동
-            global searched_list # 검색 리스트 불러오기
-            sorted_i_s=sort_seq(var_sort.get(),searched_list)[:] #검색 리스트 정렬하기
-            for w in board_search_ctxt.winfo_children(): w.destroy() # 검색 게시판 초기화
-            if not sorted_i_s: # 검색 결과가 없다면 안내 메세지 출력하기기
+        elif type=='s':
+            global searched_list
+            sorted_i_s=sort_seq(var_sort.get(),searched_list)[:]
+            for w in board_search_ctxt.winfo_children(): w.destroy()
+            if not sorted_i_s:
                 ttk.Label(board_search_ctxt, text="No result found.").pack()
-            for n, inst in enumerate(sorted_i_s): #게시물 배치 - 한 줄에 4개씩
+            for n, inst in enumerate(sorted_i_s):
                 inst.showState(board_search_ctxt)
                 inst.frm.grid(row=n//4, column=n%4)
-            board_search_ctxt.pack() # 검색 게시판 불러오기
+            board_search_ctxt.pack()
             board_search.pack()
 
-        elif type=='user': #마이페이지 출력하기 - 마이페이지 이동 버튼을 눌렀을 때
-            # 자신이 잃어버린 물건과 찾아진 물건들이 검색됨
+        elif type=='user':
             user_lost_list=list(filter(lambda x: hasattr(x, 'username') and x.username==user,lost_item_list))
+                                    #hasattr 추가한 이유: 기존 저장된 객체에 .username 속성이 없을 수 있음음
             user_found_list=list(filter(lambda x: hasattr(x, 'username') and x.username==user,found_item_list))
 
-            #게시판 초기화
             for w in lostboard_mypage_ctxt.winfo_children(): w.destroy() 
             for w in foundboard_mypage_ctxt.winfo_children(): w.destroy()
 
-            #사용자가 잃어버린 물건 정렬, 아이템이 있으면 출력
             sorted_i_ul=sort_seq(var_sort.get(),user_lost_list)[:]
             if not sorted_i_ul:
                 ttk.Label(lostboard_mypage_ctxt, text="No Item Yet.").pack()
@@ -130,7 +116,6 @@ def start():
 
             lostboard_mypage_ctxt.pack()
 
-            #사용자가 잃어버렸다가 찾은 물건 정렬, 아이템이 있으면 출력
             sorted_i_uf=sort_seq(var_sort.get(),user_found_list)[:]
             if not sorted_i_uf:
                 ttk.Label(foundboard_mypage_ctxt, text="No Item Yet.").pack()
@@ -141,136 +126,125 @@ def start():
             foundboard_mypage_ctxt.pack()
             board_mypage.pack()
 
-        else: # 예외처리리
-            print('Error: To Home')
-            global typ
-            typ='lf'
-            reload_data(typ)
-
-    def reload_data_prime(*args): reload_data(typ) # trigger.trace_add 매개
+    def reload_data_prime(*args): reload_data(typ)
 
     #변수 정의
     #region Method
     global typ
     global user
-    typ='lf' # 게시판 타입
-    user='' #유저 이름 저장
+    typ='lf'
+    user=''
 
     ml = ThemedTk(theme = 'arc')
     ml.title("Lost and Found")
-    lost_item_list=[] #잃어버린 물건의 객체의 리스트
-    found_item_list=[] #찾은 물건의 객체의 리스트
-    searched_list=[] # 검색된 물건의 객체의 리스트
-    user_lost_list=[] # 분실물 게시판의 잃어버린 물건 리스트
-    user_found_list = [] # 분실물 게시판의 찾은 물건 리스트
-    cag_item_list=[] # 누군가 잃어버린 것 같은 물건 리스트트
+    lost_item_list=[]
+    found_item_list=[]
+    searched_list=[]
+    user_list=[]
+    user_lost_list=[]
+    user_found_list = []
+    cag_item_list=[]
     #endregion Method
+
+    
+
+
+
+
 
     #입력하기
     #region Method
-    def lost_input(ml): #등록하기 버튼 (Submit) 을 누르면 실행되는 함수
-        window = tk.Toplevel(ml) #등록하기 창: 새 창이 실행됨
+    def lost_input(ml): 
+        window = tk.Toplevel(ml)
         window.title("분실물 입력하기")
-        frm=ttk.Frame(window) 
-        #창에서 상단의 버튼으로 이루어진 선택창에서 잃어버린 물건 입력 모드와
-        # 잃어버린 것 같은 물건 등록 모드를 선택 가능능 
+        frm=ttk.Frame(window)
 
-        def inputLostAndFound(frm): #잃어버린 물건 입력 UI+작동 함수
-            def select_image_int(): #이미지 선택을 매개하는 함수
+        def inputLostAndFound(frm):
+            def select_image_int():
                 global img_path
                 img_path=select_image()
 
-            def assign(): # 사용자 입력 값을 바탕으로 분실물 객체를 생성
+            def assign():
                 lost_item = Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, user, ml)
                 lost_item_list.append(lost_item)
                 reload_data(type=typ)
                 window.destroy()
 
-            #사용자 입력 창
-            name_et, time_et, loc_et = ttk.Entry(frm),ttk.Entry(frm), ttk.Entry(frm)
-            ttk.Label(frm, text="Lost Name:",style = "FIRST.TLabel").pack(); name_et.pack()
-            ttk.Label(frm, text="Lost Time:",style = "FIRST.TLabel").pack(); time_et.pack()
-            ttk.Label(frm, text="Lost Loc:", style  = "FIRST.TLabel").pack(); loc_et.pack()
-            ttk.Button(frm, text="Select Photo", command=select_image_int, style = "FIRST.TButton").pack()
-            ttk.Button(frm, text='submit', command=assign, style = "FIRST.TButton").pack()
+            name_et, time_et, loc_et = tk.Entry(frm),tk.Entry(frm), tk.Entry(frm)
+            vl = ttk.Label(frm, text="Lost Name:").pack(); name_et.pack()
+            v1l = ttk.Label(frm, text="Lost Time:").pack(); time_et.pack()
+            v2l = ttk.Label(frm, text="Lost Loc:").pack(); loc_et.pack()
+
+            b1 = ttk.Button(frm, text="Select Photo", command=select_image_int).pack()
+            b2 = ttk.Button(frm, text='submit', command=assign).pack()
     
-        def inputComeAndFind(frm): #잃어버린 것 같은 물건 등록 모드
-            def select_image_int(): #이미지 선택을 매개하는 함수
+        def inputComeAndFind(frm):
+            def select_image_int():
                 global img_path
                 img_path=select_image()
 
-            def assign(): # 사용자 입력 값을 바탕으로 분실물 객체를 생성
+            def assign():
                 lost_item = LostCAG(name_et.get(), loc_et.get(), char_txt.get("1.0", "end-1c"), img_path, user, ml)
                 cag_item_list.append(lost_item)
                 reload_data(type=typ)
                 window.destroy()
 
-            # 사용자 입력 창
-            name_et,loc_et,char_txt=ttk.Entry(frm),ttk.Entry(frm),ttk.Text(frm, width=20, height=9)
-            ttk.Label(frm, text="Lost Name:", style = "FIRST.TLabel").pack(); name_et.pack()
-            ttk.Label(frm, text="Lost Loc:", style = "FIRST.TLabel").pack(); loc_et.pack()
-            ttk.Label(frm, text="Tags:\n", style = "FIRST.TLabel").pack(); char_txt.pack()
-            ttk.Button(frm, text="Select Photo", command=select_image_int, style = "FIRST.TButton").pack()
-            ttk.Button(frm, text='Submit', command=assign, style = "FIRST.TButton").pack()
+            name_et,loc_et,char_txt=tk.Entry(frm),tk.Entry(frm),tk.Text(frm, width=20, height=9)
+            l1 = ttk.Label(frm, text="Lost Name:").pack(); name_et.pack()
+            l2 = ttk.Label(frm, text="Lost Loc:").pack(); loc_et.pack()
+            l3 = ttk.Label(frm, text="Tags:\n").pack(); char_txt.pack()
 
-        # 버튼 선택을 바탕으로 사용자가 지정한 입력 창이 표시됨
+            b6 = ttk.Button(frm, text="Select Photo", command=select_image_int).pack()
+            b7 = ttk.Button(frm, text='Submit', command=assign).pack()
+
         def load(typ,frm):
-            for w in frm.winfo_children(): #새로고침
+            for w in frm.winfo_children():
                 w.destroy()
             if typ=='laf': inputLostAndFound(frm)
             elif typ=='cag': inputComeAndFind(frm)
             frm.pack()
 
-        button_bar=ttk.Frame(window) # 버튼 두 개를 자연스럽게 이어지도록 프레임에 정렬
-        tk.Button(button_bar,text='Take this!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('laf',frm)).pack(side=tk.LEFT)
-        tk.Button(button_bar,text='Find this!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('cag',frm)).pack(side=tk.LEFT)
+        button_bar=ttk.Frame(window)
+        b23 = ttk.Button(button_bar,text='Take this!!',command=lambda: load('laf',frm)).pack(side=tk.LEFT)
+        b24 = ttk.Button(button_bar,text='Find this!!',command=lambda: load('cag',frm)).pack(side=tk.LEFT)
         button_bar.pack(padx=0,pady=0)
     
-    ##입력하기 버튼, 로그인이 되어 있을 때에만 작동함
     top_frm = ttk.Frame(ml)   #submit 버튼이 무조건 제일 위로 가게 함함
     top_frm.pack(side='top', fill='x')
 
-    #submit 버튼: 로그인 된 상태에서만 표시시
+    #submit 버튼
+    #등록하기 : datainput 과 연결
     global submit_bt
-    submit_bt = ttk.Button(top_frm, text='submit', command=lambda: lost_input(ml), style = "FIRST.TButton")  #<- 여기서 datainput의 함수 lost_input 사용
+    submit_bt = ttk.Button(top_frm, text='submit', command=lambda: lost_input(ml))  #<- 여기서 datainput의 함수 lost_input 사용
     submit_bt.pack()
     submit_bt.pack_forget()  # 처음에는 숨기기
 
     #endregion Method
 
-    #유틸창
-    # region Method
-    util_frm=tk.Frame(ml)
-    #홈매뉴
-    def to_home():
-        global typ
-        typ='lf'
-        reload_data(typ)
-    tk.Button(util_frm,text='HOME',command=to_home).pack(side='left',anchor='center',padx=10)
-
     #검색하기 
+    # region Method
     # searchlost 와 연결
-    def search_int(): # 매개 함수: typ와 검색 리스트의 변화
-        global searched_list 
-        global typ 
-        searched_list=search(lost_item_list+found_item_list+cag_item_list, search_et.get().strip())[:] # searchlost.py와 연결
+    def search_int():
+        global searched_list ###33
+        global typ #######
+        searched_list=search(lost_item_list+found_item_list+cag_item_list, search_et.get().strip())[:]
         typ='s'
-        reload_data('s') # 새로고침
+        reload_data('s')
 
-    search_et = ttk.Entry(util_frm) #검색창
-    search_bt = ttk.Button(util_frm,text='Search',command=search_int, style = "FIRST.TButton") # 검색 버튼
+    search_frm = ttk.Frame(ml)
+    search_et = ttk.Entry(search_frm)
+    search_bt = ttk.Button(search_frm,text='Search',command=search_int)
     
     search_et.pack(side='left')
     search_bt.pack(side='left')
-
-    util_frm.pack()
+    search_frm.pack()
     # endregion Method
 
     #정렬하기
     #region Method
     #정렬 프레임
     sort_frm = ttk.Frame(ml)
-    sort_lbl = ttk.Label(sort_frm, text="Reload", style = "FIRST.TLabel")
+    sort_lbl = ttk.Label(sort_frm, text="Reload")
     sort_lbl.pack(side = tk.LEFT)
 
     #정렬 옵션 선택: sortdata와 연결
@@ -278,7 +252,9 @@ def start():
     ttk.Radiobutton(sort_frm, text='Upload Date', value='u', variable=var_sort).pack(side='left')
     ttk.Radiobutton(sort_frm, text='Lost Date',value='t', variable=var_sort).pack(side='left')
     ttk.Radiobutton(sort_frm, text='Lost Location',value='l', variable=var_sort).pack(side='left')
-    sort_bt = ttk.Button(sort_frm, text="Reload", command=lambda: reload_data(typ),style = "FIRST.TButton")
+    sort_bt = ttk.Button(sort_frm, text="Reload", command=lambda: reload_data_sort(),style = "FIRST.TButton")
+    def reload_data_sort():
+        reload_data(typ)
 
     sort_bt.pack(side= 'left', padx=10)
     sort_frm.pack()
@@ -325,11 +301,8 @@ def start():
                 messagebox.showinfo("Login Sucessful!", f"Welcome {username}")
                 global user
                 user = username
-                with open ('./login_state.txt', 'w') as f:
-                    f.write(user) 
                 window.destroy()
                 update_login_menu()
-                reload_data(typ)
                 #login함수 세부 처리 넣기
 
             else:
@@ -372,12 +345,8 @@ def start():
 
     def logout():
             global user
-            global typ
             user = ''
-            with open ('./login_state.txt', 'w') as f:
-                f.write('') 
             update_login_menu()
-            reload_data(typ)
             messagebox.showinfo("Logout", "You are now logged out.")
 
     def mypage():
@@ -396,13 +365,12 @@ def start():
     menubar.add_cascade(label="Login", menu = loginmenu)
 
     # 테마 메뉴 생성
-    global style
     thememenu = tk.Menu(menubar, tearoff=0)
-    thememenu.add_command(label="Modern Basic", command = lambda: (basic_theme)) #모두 theme의 함수
-    thememenu.add_command(label="Cozy Cafe", command = lambda: (cozy_theme))
-    thememenu.add_command(label="Aqua Blue", command = lambda: (aqua_theme))
-    thememenu.add_command(label="Sunny Day", command = lambda: (sunny_theme))
-    menubar.add_cascade(label="Theme", menu= thememenu)
+    thememenu.add_command(label="Modern Basic", command = basic_theme)
+    thememenu.add_command(label="Cozy Cafe", command = cozy_theme)
+    thememenu.add_command(label="Aqua Blue", command = aqua_theme)
+    thememenu.add_command(label="Sunny Day", command = sunny_theme)
+    menubar.add_cascade(label="Music Theme", menu= thememenu)
 
 
     # 나가는 메뉴 생성
@@ -427,13 +395,14 @@ def start():
     lostboard_mypage=ttk.Frame(board_mypage_ctxt)
     foundboard_mypage=ttk.Frame(board_mypage_ctxt)
     
-    ttk.Label(board_lost, text='LOST').pack()
-    ttk.Label(board_found, text='FOUND').pack()
-    ttk.Label(board_cag, text='COME&GET').pack()
-    ttk.Label(board_search, text='SEARCHED').pack()
-    ttk.Label(board_mypage, text='MYPAGE').pack()
-    ttk.Label(lostboard_mypage, text='LOST').pack()
-    ttk.Label(foundboard_mypage, text='FOUND').pack()
+    l11 = ttk.Label(board_lost, text='LOST').pack()
+    l12 = ttk.Label(board_found, text='FOUND').pack()
+    l13 = ttk.Label(board_cag, text='COME&GET').pack()
+    l14 = ttk.Label(board_search, text='SEARCHED').pack()
+    l15 = ttk.Label(board_mypage, text='MYPAGE').pack()
+    l16 = ttk.Label(lostboard_mypage, text='LOST').pack()
+    l17 = ttk.Label(foundboard_mypage, text='FOUND').pack()
+
 
     board_lost_ctxt = ttk.Frame(board_lost)
     board_found_ctxt = ttk.Frame(board_found)
