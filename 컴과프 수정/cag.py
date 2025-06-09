@@ -19,6 +19,8 @@ class LostCAG:
         self.data = [self.name, self.loc, self.char, self.tags, self.img]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
         self.delete_trigger=tk.BooleanVar(value=False,master=self.ml)
+        self.del_trc_id=''
+        self.trc_id=''
         self.frm = ttk.Frame(self.ml)
 
     def showState(self,mother_frm):
