@@ -21,6 +21,8 @@ class Lost: #클래스명명
         self.data = [self.name,self.time,self.loc,self.img,0]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
         self.delete_trigger=tk.BooleanVar(value=False,master=self.ml)
+        self.del_trc_id=''
+        self.trc_id=''
         self.frm = ttk.Frame(self.ml)
 
     def showState(self,mother_frm, mypage=False):
@@ -51,22 +53,22 @@ class Lost: #클래스명명
                     ttk.Label(self.frm, image=self.photo).pack(anchor="w")
                 else:
                     ttk.Label(self.frm, text="(No Image)").pack()
-            else:
+            except:
                 ttk.Label(self.frm, text="(No Image)").pack()
         else: #Found상태
-            if self.found_img_path: #이미지 출력
+            try: #이미지 출력
                 self.found_photo = load_image(self.found_img_path, self.frm)
                 if self.found_photo:
                     ttk.Label(self.frm, image=self.found_photo).pack(anchor="w")
                 else:
                     ttk.Label(self.frm, text="(No Image)").pack()       
-            else:
+            except:
                 ttk.Label(self.frm, text="(No Image)").pack()
 
         
         #찾기 버튼
         if not self.state:
-            ttk.Button(self.frm, text="Found", command=self.foundInput).pack()
+            ttk.Button(self.frm, text="Found", command=lambda: self.foundInput()).pack()
         if self.check_mine and self.state and login_user==self.username:
             def checked():
                 self.check_mine=False
