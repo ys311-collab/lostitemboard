@@ -1,4 +1,3 @@
-
 #분실물 하나하나를 객체로 하는 클래스. 개별 ui설정, 찾기 기능 여기서 다룸룸
 
 import tkinter as tk
@@ -65,7 +64,9 @@ class Lost: #클래스명명
                     ttk.Label(self.frm, text="(No Image)").pack()       
             except:
                 ttk.Label(self.frm, text="(No Image)").pack()
-        #찾기 버튼Add commentMore actions
+
+        
+        #찾기 버튼
         if not self.state:
             ttk.Button(self.frm, text="Found", command=lambda: self.foundInput()).pack()
         if self.check_mine and self.state and login_user==self.username:
