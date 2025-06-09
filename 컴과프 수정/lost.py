@@ -21,10 +21,8 @@ class Lost: #클래스명명
         self.data = [self.name,self.time,self.loc,self.img,0]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
 
-        style = ttk.Style()
-        style.configure( "selfst.TFrame", width=70, height=110, padx=10, pady=10,
-                            highlightbackground=["yellow", "blue"][self.state], highlightthickness=5)
-        self.frm = ttk.Frame(self.ml, style = "selfst.TFrame")
+
+        self.frm = ttk.Frame(self.ml)
 
     def showState(self,mother_frm, mypage=False):
         with open('./login_state.txt','r') as f:
