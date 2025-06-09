@@ -1,6 +1,8 @@
 #누군가 잃어버린 것 같은 물건 관리
 import tkinter as tk
 from images import load_image
+from tkinter import ttk
+from ttkthemes import ThemedTk
 
 class LostCAG:
     def __init__(self, name, loc, char ,img_path, username, ml):
@@ -15,7 +17,7 @@ class LostCAG:
         self.retrieved = False
         self.data = [self.name, self.loc, self.char, self.tags, self.img]
         self.trigger=tk.BooleanVar(value=False,master=self.ml)
-        self.frm = tk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
+        self.frm = ttk.Frame(self.ml, width=70, height=110, padx=10, pady=10,
                             highlightbackground="green", highlightthickness=5)
 
     def showState(self,mother_frm):
@@ -32,25 +34,27 @@ class LostCAG:
 
         #UI 만들기
         self.frm.destroy()
-        self.frm = tk.Frame(mother_frm, width=70, height=110, padx=10, pady=10,
+        style = ttk.Style()
+        style.configure("haha.TFrame", width=70, height=110, padx=10, pady=10,
                             highlightbackground="green", highlightthickness=5)
-        tk.Label(self.frm, text = f"User: {self.username}").pack()
-        tk.Label(self.frm, text=f"Lost: {self.name}").pack()
-        tk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{self.got_user} got it').pack(anchor=tk.E)
-        tk.Label(self.frm, text=f"Loc: {self.loc}").pack()
-        tk.Label(self.frm, text=f"{self.char}\n{' '.join(map(lambda x: '#'+x, self.tags))}").pack()
+        self.frm = ttk.Frame(mother_frm, style = "haha.TFrame")
+        ttk.Label(self.frm, text = f"User: {self.username}").pack()
+        ttk.Label(self.frm, text=f"Lost: {self.name}").pack()
+        ttk.Label(self.frm, text='Come And Get!' if not self.retrieved else f'{self.got_user} got it').pack(anchor=tk.E)
+        ttk.Label(self.frm, text=f"Loc: {self.loc}").pack()
+        ttk.Label(self.frm, text=f"{self.char}\n{' '.join(map(lambda x: '#'+x, self.tags))}").pack()
         if self.img: #이미지 출력
             self.photo = load_image(self.img, self.frm)
             if self.photo:
-                tk.Label(self.frm, image=self.photo).pack(anchor="w")
+                ttk.Label(self.frm, image=self.photo).pack(anchor="w")
             else:
-                tk.Label(self.frm, text="(No Image)").pack()
+                ttk.Label(self.frm, text="(No Image)").pack()
         else:
-            tk.Label(self.frm, text="(No Image)").pack()
+            ttk.Label(self.frm, text="(No Image)").pack()
 
         if not self.retrieved:
-            retrieve_bt=tk.Button(self.frm, text="I Got It!", command=lambda: retrieval())
+            retrieve_bt=ttk.Button(self.frm, text="I Got It!", command=lambda: retrieval())
             retrieve_bt.pack()
         if self.retrieved:
-            check_rt_bt=tk.Button(self.frm, text="It's mine!", command=lambda: check_rt())
+            check_rt_bt=ttk.Button(self.frm, text="It's mine!", command=lambda: check_rt())
             check_rt_bt.pack()
