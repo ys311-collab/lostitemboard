@@ -12,7 +12,7 @@ try:
     # data
     from lost import Lost           #분실물 하나하나를 객체로 클래스
     from cag import LostCAG         #Lost ComeAndGet, 잃어버린 것 같다고 생각되는 물건을 객체로 가지는 클래스
-    from sortlost import sort_seq   #정렬 함수
+    from sortlost import sort_seq_l, sort_seq_f, sort_seq_cag   #정렬 함수
     from searchlost import search   #검색 함수
     from images import select_image #이미지 입력 함수
     from login import load_user_data, save_user_data    #로그인 관련 함수
@@ -89,9 +89,9 @@ def start():
             for w in board_cag_ctxt.winfo_children(): w.destroy()
         
             #게시물을 정렬한 리스트 sortlost의 sort_seq 사용
-            sorted_i_l=sort_seq(var_sort.get(),lost_item_list)[:]
-            sorted_i_f=sort_seq(var_sort.get(),found_item_list)[:]
-            sorted_i_cag=sort_seq('u',cag_item_list)
+            sorted_i_l=sort_seq_l(var_sort.get(),lost_item_list)[:]
+            sorted_i_f=sort_seq_f(var_sort.get(),found_item_list)[:]
+            sorted_i_cag=sort_seq_cag('u',cag_item_list)
             
             #게시물 배치 - 정렬된 것을 바탕으로 함. 한 줄에 3개씩 배치
             for n, inst in enumerate(sorted_i_l):
@@ -111,7 +111,7 @@ def start():
             
         elif type=='s': #검색 게시판: 검색 버튼을 눌렀을 때 작동
             global searched_list # 검색 리스트 불러오기
-            sorted_i_s=sort_seq(var_sort.get(),searched_list)[:] #검색 리스트 정렬하기
+            sorted_i_s=searched_list[:]
             for w in board_search_ctxt.winfo_children(): w.destroy() # 검색 게시판 초기화
             if not sorted_i_s: # 검색 결과가 없다면 안내 메세지 출력하기기
                 ttk.Label(board_search_ctxt, text="No result found.").pack()
@@ -132,7 +132,7 @@ def start():
             for w in foundboard_mypage_ctxt.winfo_children(): w.destroy()
 
             #사용자가 잃어버린 물건 정렬, 아이템이 있으면 출력
-            sorted_i_ul=sort_seq(var_sort.get(),user_lost_list)[:]
+            sorted_i_ul=sort_seq_l(var_sort.get(),user_lost_list)[:]
             if not sorted_i_ul:
                 ttk.Label(lostboard_mypage_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_ul):
@@ -142,7 +142,7 @@ def start():
             lostboard_mypage_ctxt.pack()
 
             #사용자가 잃어버렸다가 찾은 물건 정렬, 아이템이 있으면 출력
-            sorted_i_uf=sort_seq(var_sort.get(),user_found_list)[:]
+            sorted_i_uf=sort_seq_f(var_sort.get(),user_found_list)[:]
             if not sorted_i_uf:
                 ttk.Label(foundboard_mypage_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_uf):
