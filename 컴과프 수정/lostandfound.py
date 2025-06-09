@@ -1,3 +1,4 @@
+
 #게시판 생성 / 게시판의 전체적 ui를 여기서 다룸
 #module import
 #region Method
@@ -11,14 +12,48 @@ from lost import Lost
 from cag import LostCAG #Lost ComeAndGet, 잃어버린 것 같다고 생각되는는 물건 관리
 from sortlost import sort_seq
 from searchlost import search
-from images import select_image, load_image
+from images import select_image
 from login import load_user_data, save_user_data
+from theme import *
+from theme import colors
 #endregion Method
 
-def start():
 
-    with open('./login_state.txt','w') as f:
-        f.write('')
+def refresh_ui():
+    # 모든 위젯의 스타일을 다시 그리는 느낌으로, 강제로 새로고침
+    for widget in tk._default_root.winfo_children():
+        widget.update_idletasks()
+
+
+#style 정의
+def apply_style():
+    style = ttk.Style()
+    style.configure("FIRST.TLabel",
+                    font=('Helvetica', 12, 'bold'),
+                    foreground= colors[0],
+                    background= colors[2],
+                    )
+        
+    #로그인 창
+    style.configure("SECOND.TLabel",
+                    font=('Helvetica', 12, 'bold'),
+                    foreground=colors[1],
+                    background=colors[3],
+                    )
+        
+    style.configure("FIRST.TButton",
+                    font=('Helvetica', 12, 'bold'),
+                    foreground='white',
+                    background=colors[1],
+                    )
+        
+    style.configure("FIRST.TFrame",
+                    font=('Helvetica', 12, 'bold'),
+                    foreground='white',
+                    background=colors[4],
+                    )
+
+def start():
     
     ## 새로고침
     def reload_data(type='lf',*args):
@@ -61,7 +96,7 @@ def start():
             sorted_i_s=sort_seq(var_sort.get(),searched_list)[:]
             for w in board_search_ctxt.winfo_children(): w.destroy()
             if not sorted_i_s:
-                tk.Label(board_search_ctxt, text="No result found.").pack()
+                ttk.Label(board_search_ctxt, text="No result found.").pack()
             for n, inst in enumerate(sorted_i_s):
                 inst.showState(board_search_ctxt)
                 inst.frm.grid(row=n//4, column=n%4)
@@ -78,7 +113,7 @@ def start():
 
             sorted_i_ul=sort_seq(var_sort.get(),user_lost_list)[:]
             if not sorted_i_ul:
-                tk.Label(lostboard_mypage_ctxt, text="No Item Yet.").pack()
+                ttk.Label(lostboard_mypage_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_ul):
                 inst.showState(lostboard_mypage_ctxt, mypage = True)
                 inst.frm.grid(row=n//3, column=n%3)
@@ -87,7 +122,7 @@ def start():
 
             sorted_i_uf=sort_seq(var_sort.get(),user_found_list)[:]
             if not sorted_i_uf:
-                tk.Label(foundboard_mypage_ctxt, text="No Item Yet.").pack()
+                ttk.Label(foundboard_mypage_ctxt, text="No Item Yet.").pack()
             for n, inst in enumerate(sorted_i_uf):
                 inst.showState(foundboard_mypage_ctxt, mypage = True)
                 inst.frm.grid(row=n//3, column=n%3)
@@ -104,7 +139,7 @@ def start():
     typ='lf'
     user=''
 
-    ml = tk.Tk()
+    ml = ThemedTk(theme = 'arc')
     ml.title("Lost and Found")
     lost_item_list=[]
     found_item_list=[]
@@ -116,12 +151,18 @@ def start():
     load_data()
     #endregion Method
 
+    
+
+
+
+
+
     #입력하기
     #region Method
     def lost_input(ml): 
         window = tk.Toplevel(ml)
         window.title("분실물 입력하기")
-        frm=tk.Frame(window)
+        frm=ttk.Frame(window)
 
         def inputLostAndFound(frm):
             def select_image_int():
@@ -134,12 +175,12 @@ def start():
                 reload_data(type=typ)
                 window.destroy()
 
-            name_et, time_et, loc_et = tk.Entry(frm),tk.Entry(frm), tk.Entry(frm)
-            tk.Label(frm, text="Lost Name:",font=('Helvetica', 9, 'bold')).pack(); name_et.pack()
-            tk.Label(frm, text="Lost Time:",font=('Helvetica', 9, 'bold')).pack(); time_et.pack()
-            tk.Label(frm, text="Lost Location:",font=('Helvetica', 9, 'bold')).pack(); loc_et.pack()
-            tk.Button(frm, text="Select Photo", command=select_image_int).pack()
-            tk.Button(frm, text='submit', command=assign).pack()
+            name_et, time_et, loc_et = ttk.Entry(frm),ttk.Entry(frm), ttk.Entry(frm)
+            ttk.Label(frm, text="Lost Name:",style = "FIRST.TLabel").pack(); name_et.pack()
+            ttk.Label(frm, text="Lost Time:",style = "FIRST.TLabel").pack(); time_et.pack()
+            ttk.Label(frm, text="Lost Loc:", style  = "FIRST.TLabel").pack(); loc_et.pack()
+            ttk.Button(frm, text="Select Photo", command=select_image_int, style = "FIRST.TButton").pack()
+            ttk.Button(frm, text='submit', command=assign, style = "FIRST.TButton").pack()
     
         def inputComeAndFind(frm):
             def select_image_int():
@@ -147,17 +188,17 @@ def start():
                 img_path=select_image()
 
             def assign():
-                lost_item = LostCAG(name_et.get(), loc_et.get(), char_txt.get("1.0", "end-1c"), img_path, user,ml)
+                lost_item = LostCAG(name_et.get(), loc_et.get(), char_txt.get("1.0", "end-1c"), img_path, user, ml)
                 cag_item_list.append(lost_item)
                 reload_data(type=typ)
                 window.destroy()
 
-            name_et,loc_et,char_txt=tk.Entry(frm),tk.Entry(frm),tk.Text(frm, width=20, height=9)
-            tk.Label(frm, text="이름:").pack(); name_et.pack()
-            tk.Label(frm, text="위치:").pack(); loc_et.pack()
-            tk.Label(frm, text="특징 (태그 포함):\n").pack(); char_txt.pack()
-            tk.Button(frm, text="사진 선택", command=select_image_int).pack()
-            tk.Button(frm, text='등록', command=assign).pack()
+            name_et,loc_et,char_txt=ttk.Entry(frm),ttk.Entry(frm),ttk.Text(frm, width=20, height=9)
+            ttk.Label(frm, text="Lost Name:", style = "FIRST.TLabel").pack(); name_et.pack()
+            ttk.Label(frm, text="Lost Loc:", style = "FIRST.TLabel").pack(); loc_et.pack()
+            ttk.Label(frm, text="Tags:\n", style = "FIRST.TLabel").pack(); char_txt.pack()
+            ttk.Button(frm, text="Select Photo", command=select_image_int, style = "FIRST.TButton").pack()
+            ttk.Button(frm, text='Submit', command=assign, style = "FIRST.TButton").pack()
 
         def load(typ,frm):
             for w in frm.winfo_children():
@@ -166,29 +207,22 @@ def start():
             elif typ=='cag': inputComeAndFind(frm)
             frm.pack()
 
-        button_bar=tk.Frame(window)
-        tk.Button(button_bar,text='찾아주세요!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('laf',frm)).pack(side=tk.LEFT)
-        tk.Button(button_bar,text='찾아가세요!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('cag',frm)).pack(side=tk.LEFT)
+        button_bar=ttk.Frame(window)
+        tk.Button(button_bar,text='Take this!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('laf',frm)).pack(side=tk.LEFT)
+        tk.Button(button_bar,text='Find this!!',width=10, height=4, bd=0,padx=0,pady=0, command=lambda: load('cag',frm)).pack(side=tk.LEFT)
         button_bar.pack(padx=0,pady=0)
     
-    top_frm = tk.Frame(ml)   #submit 버튼이 무조건 제일 위로 가게 함함
+    top_frm = ttk.Frame(ml)   #submit 버튼이 무조건 제일 위로 가게 함함
     top_frm.pack(side='top', fill='x')
 
     #submit 버튼
     #등록하기 : datainput 과 연결
     global submit_bt
-    submit_bt = tk.Button(top_frm, text='submit', font=('Helvetica', 9, 'bold'),fg='#89B0AE', 
-                          bg='#FAF9F9', command=lambda: lost_input(ml))  #<- 여기서 datainput의 함수 lost_input 사용
+    submit_bt = ttk.Button(top_frm, text='submit', command=lambda: lost_input(ml), style = "FIRST.TButton")  #<- 여기서 datainput의 함수 lost_input 사용
     submit_bt.pack()
     submit_bt.pack_forget()  # 처음에는 숨기기
 
     #endregion Method
-
-    def to_home():
-        global typ
-        typ='lf'
-        reload_data(typ)
-    tk.Button(ml,text='HOME',command=to_home).pack()
 
     #검색하기 
     # region Method
@@ -200,9 +234,9 @@ def start():
         typ='s'
         reload_data('s')
 
-    search_frm = tk.Frame(ml)
-    search_et = tk.Entry(search_frm)
-    search_bt = tk.Button(search_frm,text='Search',command=search_int)
+    search_frm = ttk.Frame(ml)
+    search_et = ttk.Entry(search_frm)
+    search_bt = ttk.Button(search_frm,text='Search',command=search_int, style = "FIRST.TButton")
     
     search_et.pack(side='left')
     search_bt.pack(side='left')
@@ -212,20 +246,20 @@ def start():
     #정렬하기
     #region Method
     #정렬 프레임
-    sort_frm = tk.Frame(ml)
-    sort_lbl = tk.Label(sort_frm, text="Reload", font=("Helvetica", 10, "bold"))
-    sort_lbl.pack(side=tk.LEFT)
+    sort_frm = ttk.Frame(ml)
+    sort_lbl = ttk.Label(sort_frm, text="Reload", style = "FIRST.TLabel")
+    sort_lbl.pack(side = tk.LEFT)
 
     #정렬 옵션 선택: sortdata와 연결
     var_sort = tk.StringVar(value='u',master = ml)
-    tk.Radiobutton(sort_frm, text='Upload Date', font=('Helvetica', 10, 'bold'),fg='#555B6E', value='u', variable=var_sort).pack(side='left')
-    tk.Radiobutton(sort_frm, text='Lost Date', font=('Helvetica',10, 'bold'), fg='#555B6E', value='t', variable=var_sort).pack(side='left')
-    tk.Radiobutton(sort_frm, text='Lost Location', font=('Helvetica',10, 'bold'),fg='#555B6E', value='l', variable=var_sort).pack(side='left')
-    sort_bt = tk.Button(sort_frm, text="Reload", command=lambda: reload_data_sort())
+    ttk.Radiobutton(sort_frm, text='Upload Date', value='u', variable=var_sort).pack(side='left')
+    ttk.Radiobutton(sort_frm, text='Lost Date',value='t', variable=var_sort).pack(side='left')
+    ttk.Radiobutton(sort_frm, text='Lost Location',value='l', variable=var_sort).pack(side='left')
+    sort_bt = ttk.Button(sort_frm, text="Reload", command=lambda: reload_data_sort(),style = "FIRST.TButton")
     def reload_data_sort():
         reload_data(typ)
 
-    sort_bt.pack(side=tk.LEFT, padx=10)
+    sort_bt.pack(side= 'left', padx=10)
     sort_frm.pack()
     #endregion Method
 
@@ -253,12 +287,12 @@ def start():
 
         window = tk.Toplevel(ml)
 
-        tk.Label(window, text="ID").pack()
-        entry_id = tk.Entry(window)
+        ttk.Label(window, text="ID", style = "SECOND.TLabel").pack()
+        entry_id = ttk.Entry(window)
         entry_id.pack()
 
-        tk.Label(window, text="Password").pack()
-        entry_pw = tk.Entry(window, show="*")
+        ttk.Label(window, text="Password", style = "SECOND.TLabel").pack()
+        entry_pw = ttk.Entry(window, show="*")
         entry_pw.pack()
         
         def check_login():
@@ -270,30 +304,27 @@ def start():
                 messagebox.showinfo("Login Sucessful!", f"Welcome {username}")
                 global user
                 user = username
-                with open ('./login_state.txt', 'w') as f:
-                    f.write(user) 
                 window.destroy()
                 update_login_menu()
-                reload_data(typ)
                 #login함수 세부 처리 넣기
 
             else:
                 messagebox.showerror("Failed to Login", "Id or password is wrong.")
 
             
-        tk.Button(window, text="Login", command=check_login).pack(pady=5)
+        ttk.Button(window, text="Login", command=check_login, style = "FIRST.TButton").pack(pady=5)
 
     # 회원가입 함수
     def create_id(ml):
 
         window = tk.Toplevel(ml)
 
-        tk.Label(window, text="Id").pack()
-        entry_id = tk.Entry(window)
+        ttk.Label(window, text="Id", style = "SECOND.TLabel").pack()
+        entry_id = ttk.Entry(window)
         entry_id.pack()
 
-        tk.Label(window, text="Password").pack()
-        entry_pw = tk.Entry(window, show="*")
+        ttk.Label(window, text="Password", style = "SECOND.TLabel").pack()
+        entry_pw = ttk.Entry(window, show="*")
         entry_pw.pack()
 
         def register():
@@ -313,13 +344,11 @@ def start():
                 messagebox.showinfo("회원가입 성공", f"{username}님 회원가입 완료!")
                 window.destroy()
                 update_login_menu()
-        tk.Button(window, text="Create ID", command= register).pack(pady=5)
+        ttk.Button(window, text="Create ID", command= register, style = "FIRST.TButton").pack(pady=5)
 
     def logout():
             global user
             user = ''
-            with open ('./login_state.txt', 'w') as f:
-                f.write('') 
             update_login_menu()
             messagebox.showinfo("Logout", "You are now logged out.")
 
@@ -339,12 +368,12 @@ def start():
     menubar.add_cascade(label="Login", menu = loginmenu)
 
     # 테마 메뉴 생성
-    # thememenu = tk.Menu(menubar, tearoff=0)
-    # thememenu.add_command(label="Modern Basic", command = basic_theme)
-    # thememenu.add_command(label="Cozy Cafe", command = cozy_theme)
-    # thememenu.add_command(label="Aqua Blue", command = aqua_theme)
-    # thememenu.add_command(label="Sunny Day", command = sunny_theme)
-    # menubar.add_cascade(label="Theme", menu= thememenu)
+    thememenu = tk.Menu(menubar, tearoff=0)
+    thememenu.add_command(label="Modern Basic", command = basic_theme)
+    thememenu.add_command(label="Cozy Cafe", command = cozy_theme)
+    thememenu.add_command(label="Aqua Blue", command = aqua_theme)
+    thememenu.add_command(label="Sunny Day", command = sunny_theme)
+    menubar.add_cascade(label="Theme", menu= thememenu)
 
 
     # 나가는 메뉴 생성
@@ -357,32 +386,32 @@ def start():
 
     #전체 게시판 관리
     #region Method
-    board = tk.Frame(ml)
-    board_lost = tk.Frame(board)
-    board_lost.configure(bg='#FAF9F9')
-    board_found = tk.Frame(board)
-    board_found.configure(bg='#FAF9F9')
-    board_cag = tk.Frame(board)
-    board_search=tk.Frame(board)
-    board_mypage=tk.Frame(board)
-    board_mypage_ctxt=tk.Frame(board_mypage)
-    lostboard_mypage=tk.Frame(board_mypage_ctxt)
-    foundboard_mypage=tk.Frame(board_mypage_ctxt)
-    
-    tk.Label(board_lost, text='LOST', font=('Helvetica', 20, 'bold'),fg='#BEE3DB',bg = '#555B6E').pack()
-    tk.Label(board_found, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
-    tk.Label(board_cag, text='COME&GET', font=('Helvetica', 20, 'bold'),fg="#CAD7A4",bg = '#555B6E').pack()
-    tk.Label(board_search, text='SEARCHED', font=('Helvetica', 20, 'bold'),fg='#BEE3DB',bg = '#555B6E').pack()
-    tk.Label(board_mypage, text='MYPAGE', font=('Helvetica', 20, 'bold'),fg="#1BC8CB",bg = '#555B6E').pack()
-    tk.Label(lostboard_mypage, text='LOST', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
-    tk.Label(foundboard_mypage, text='FOUND', font=('Helvetica', 20, 'bold'),fg='#FFD6BA',bg = '#555B6E').pack()
+    board = ttk.Frame(ml)
+    board_lost = ttk.Frame(board)
+#board 배경색 지정정
+    board_found = ttk.Frame(board)
 
-    board_lost_ctxt = tk.Frame(board_lost)
-    board_found_ctxt = tk.Frame(board_found)
-    board_cag_ctxt = tk.Frame(board_cag)
-    board_search_ctxt=tk.Frame(board_search)
-    lostboard_mypage_ctxt=tk.Frame(lostboard_mypage)
-    foundboard_mypage_ctxt=tk.Frame(foundboard_mypage)
+    board_cag = ttk.Frame(board)
+    board_search=ttk.Frame(board)
+    board_mypage=ttk.Frame(board)
+    board_mypage_ctxt=ttk.Frame(board_mypage)
+    lostboard_mypage=ttk.Frame(board_mypage_ctxt)
+    foundboard_mypage=ttk.Frame(board_mypage_ctxt)
+    
+    ttk.Label(board_lost, text='LOST').pack()
+    ttk.Label(board_found, text='FOUND').pack()
+    ttk.Label(board_cag, text='COME&GET').pack()
+    ttk.Label(board_search, text='SEARCHED').pack()
+    ttk.Label(board_mypage, text='MYPAGE').pack()
+    ttk.Label(lostboard_mypage, text='LOST').pack()
+    ttk.Label(foundboard_mypage, text='FOUND').pack()
+
+    board_lost_ctxt = ttk.Frame(board_lost)
+    board_found_ctxt = ttk.Frame(board_found)
+    board_cag_ctxt = ttk.Frame(board_cag)
+    board_search_ctxt=ttk.Frame(board_search)
+    lostboard_mypage_ctxt=ttk.Frame(lostboard_mypage)
+    foundboard_mypage_ctxt=ttk.Frame(foundboard_mypage)
 
     board_lost.pack(side="left", padx=2, pady=2, fill="both", expand=True)
     board_found.pack(side="left", padx=2, pady=2, fill="both", expand=True)
@@ -399,9 +428,9 @@ def start():
     foundboard_mypage_ctxt.pack(fill="both", expand=True)
 
     def create_scrollable_frame(parent):
-        canvas = tk.Canvas(parent, borderwidth=0, background="#FAF9F9")
+        canvas = tk.Canvas(parent, borderwidth=0)
         scrollbar = tk.Scrollbar(parent, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, background="#FAF9F9")
+        scrollable_frame = ttk.Frame(canvas, style = "FIRST.TFrame")
 
         scrollable_frame.bind(
             "<Configure>",
