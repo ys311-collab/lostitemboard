@@ -71,7 +71,9 @@ def start():
                 lost_item_list.append(inst)
 
         for lost_inst in lost_item_list+found_item_list+cag_item_list:
-            if lost_inst.del_trc_id: lost_inst.delete_trigger.trace_remove("write",lost_inst.del_trc_id)
+            if lost_inst.del_trc_id:
+                lost_inst.delete_trigger.trace_remove("write",lost_inst.del_trc_id)
+                print(1)
             lost_inst.del_trc_id=lost_inst.delete_trigger.trace_add("write",delete_reload)
 
         for lost_inst in lost_item_list+found_item_list+cag_item_list:
@@ -280,12 +282,12 @@ def start():
     def search_int(): # 매개 함수: typ와 검색 리스트의 변화
         global searched_list 
         global typ 
-        searched_list=search(lost_item_list+found_item_list+cag_item_list, search_et.get().strip())[:] # searchlost.py와 연결
+        searched_list=search(lost_item_list[:]+found_item_list[:]+cag_item_list[:], search_et.get().strip())[:] # searchlost.py와 연결
         typ='s'
         reload_data('s') # 새로고침
 
     search_et = ttk.Entry(util_frm) #검색창
-    search_bt = ttk.Button(util_frm,text='Search',command=search_int, style = "FIRST.TButton") # 검색 버튼
+    search_bt = ttk.Button(util_frm,text='Search',command=lambda: search_int(), style = "FIRST.TButton") # 검색 버튼
     
     search_et.pack(side='left')
     search_bt.pack(side='left')
