@@ -210,6 +210,9 @@ def start():
                 img_path=select_image()
 
             def assign(): # 사용자 입력 값을 바탕으로 분실물 객체를 생성
+                if len(time_et.get())!=6 or not all(ch.isdigit() for ch in time_et.get()):
+                    messagebox.showwarning('Error','Time Input Error')
+                    return
                 lost_item = Lost(name_et.get(), time_et.get(), loc_et.get(), img_path, user, ml)
                 lost_item_list.append(lost_item)
                 reload_data(type=typ)
@@ -218,7 +221,7 @@ def start():
             #사용자 입력 창
             name_et, time_et, loc_et = tk.Entry(frm),tk.Entry(frm), tk.Entry(frm)
             ttk.Label(frm, text="Lost Name:").pack(); name_et.pack()
-            ttk.Label(frm, text="Lost Time:").pack(); time_et.pack()
+            ttk.Label(frm, text="Lost Time (MMDDHH):").pack(); time_et.pack()
             ttk.Label(frm, text="Lost Loc:").pack(); loc_et.pack()
             ttk.Button(frm, text="Select Photo", command=select_image_int).pack()
             ttk.Button(frm, text='submit', command=assign).pack()
