@@ -12,15 +12,15 @@ def str_dist(inp,ans):
         for ch in string:
             if is_hangeul(ch): res+=h2j(ch)
             elif ch.isalpha(): res+=ch.lower()
-            else: pass
+            elif ch.isdigit(): res+=ch
         return res
 
     def find_closest(inp,ans,inp_idx,ans_idx):
-        min_dist_list=[max((len(ans)-1-ans_idx),(len(inp)-1-inp_idx)),len(inp),len(ans)]
-        for idx in range(inp_idx+1,len(inp)): #inp의 idx>inp_idx 인덱스 값과 ans의 next_find>ans_idx 인덱시 값이 같은
+        min_dist_list=[max((len(ans)-ans_idx),(len(inp)-inp_idx)),len(inp),len(ans)]
+        for idx in range(inp_idx,len(inp)): #inp의 idx>inp_idx 인덱스 값과 ans의 next_find>ans_idx 인덱시 값이 같은
             #것들 중에서 그 차이의 합이 최소가 되도록 함. 없다면 inp_idx, ans_idx 값을 가짐.
-            if ans_idx<len(ans)-1 and inp[idx] in ans[ans_idx+1:]:
-                next_find=ans[ans_idx+1:].find(inp[inp_idx])
+            if inp[idx] in ans[ans_idx:]:
+                next_find=ans[ans_idx:].find(inp[idx])+ans_idx
             else:
                 next_find=len(ans)
             dist=max(next_find-ans_idx, idx-inp_idx)
@@ -42,6 +42,7 @@ def str_dist(inp,ans):
                 distance_list=find_closest(inp,ans,inp_rd,ans_rd)
                 dist+=distance_list[0]
                 ans_rd,inp_rd= distance_list[1],distance_list[2]
+    
     except Exception as e:
         pass
-    return dist
+    return dist+max(len(ans)-ans_rd,len(inp)-inp_rd)
